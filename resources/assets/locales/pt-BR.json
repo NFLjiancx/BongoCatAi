@@ -159,6 +159,31 @@
           "alwaysOnTop": "Alternar se a janela do gato permanece no topo."
         }
       },
+      "ai": {
+        "title": "Assistente de IA",
+        "labels": {
+          "consent": "Consentimento de privacidade",
+          "assistant": "Assistente de voz",
+          "apiKey": "Chave de API",
+          "asrModel": "Modelo de reconhecimento de fala",
+          "ttsModel": "Modelo de síntese de voz",
+          "ttsVoice": "Voz de síntese",
+          "model": "Modelo do assistente"
+        },
+        "hints": {
+          "consent": "Permite enviar dados de voz aos serviços de IA para ativar o assistente.",
+          "assistant": "Ativa ou desativa o assistente de voz. Entrará em vigor após reiniciar.",
+          "restart": "Reinicie o BongoCat para aplicar as alterações.",
+          "needConsent": "Aceite primeiro o consentimento de privacidade.",
+          "keySet": "Salva",
+          "keyMissing": "Não definida",
+          "keyHint": "Digite uma chave de API do DashScope. Deixe vazia e pressione Enter para removê-la.",
+          "asrModel": "Nome do modelo de reconhecimento de fala.",
+          "ttsModel": "Nome do modelo de síntese de voz.",
+          "ttsVoice": "Nome da voz de síntese.",
+          "model": "Modelo de chat do assistente."
+        }
+      },
       "about": {
         "title": "Sobre",
         "labels": {
@@ -176,6 +201,18 @@
     }
   },
   "components": {
+    "voice": {
+      "stateOff": "",
+      "stateIdle": "Inativo",
+      "stateListening": "Escutando",
+      "stateRecognizing": "Reconhecendo",
+      "stateThinking": "Pensando",
+      "stateSpeaking": "Falando",
+      "stateError": "Erro",
+      "cancel": "Cancelar",
+      "close": "Fechar",
+      "utterances": "Ouvidas"
+    },
     "shortcut": {
       "hints": {
         "pressRecordShortcut": "Pressione as teclas para gravar atalho",

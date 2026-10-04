@@ -206,7 +206,35 @@ void bongo_cat_settings_defaults(BongoCatSettings *config) {
     config->app.game_compatibility = false;
     config->app.theme = BONGO_CAT_THEME_AUTO;
     config->app.language = BONGO_CAT_LANG_EN_US;
+    config->ai.enabled = false;
+    config->ai.privacy_consent = false;
+    memcpy(config->ai.asr_model, BONGO_CAT_AI_DEFAULT_ASR_MODEL,
+        sizeof(BONGO_CAT_AI_DEFAULT_ASR_MODEL));
+    memcpy(config->ai.tts_model, BONGO_CAT_AI_DEFAULT_TTS_MODEL,
+        sizeof(BONGO_CAT_AI_DEFAULT_TTS_MODEL));
+    memcpy(config->ai.tts_voice, BONGO_CAT_AI_DEFAULT_TTS_VOICE,
+        sizeof(BONGO_CAT_AI_DEFAULT_TTS_VOICE));
+    memcpy(config->ai.assistant_model, BONGO_CAT_AI_DEFAULT_ASSISTANT_MODEL,
+        sizeof(BONGO_CAT_AI_DEFAULT_ASSISTANT_MODEL));
     memcpy(config->extensions_json, "{}", sizeof("{}"));
+}
+
+static void validate_ai(BongoCatSettings *config) {
+    BongoCatAiPreferences *ai = &config->ai;
+    normalize_text(ai->asr_model, sizeof(ai->asr_model));
+    normalize_text(ai->tts_model, sizeof(ai->tts_model));
+    normalize_text(ai->tts_voice, sizeof(ai->tts_voice));
+    normalize_text(ai->assistant_model, sizeof(ai->assistant_model));
+    if (!ai->asr_model[0]) snprintf(ai->asr_model, sizeof(ai->asr_model),
+        "%s", BONGO_CAT_AI_DEFAULT_ASR_MODEL);
+    if (!ai->tts_model[0]) snprintf(ai->tts_model, sizeof(ai->tts_model),
+        "%s", BONGO_CAT_AI_DEFAULT_TTS_MODEL);
+    if (!ai->tts_voice[0]) snprintf(ai->tts_voice, sizeof(ai->tts_voice),
+        "%s", BONGO_CAT_AI_DEFAULT_TTS_VOICE);
+    if (!ai->assistant_model[0]) snprintf(ai->assistant_model,
+        sizeof(ai->assistant_model), "%s",
+        BONGO_CAT_AI_DEFAULT_ASSISTANT_MODEL);
+    if (!ai->privacy_consent) ai->enabled = false;
 }
 
 void bongo_cat_settings_validate(BongoCatSettings *config) {
@@ -235,6 +263,7 @@ void bongo_cat_settings_validate(BongoCatSettings *config) {
         config->app.theme = BONGO_CAT_THEME_AUTO;
     if ((unsigned)config->app.language >= BONGO_CAT_LANG_COUNT)
         config->app.language = BONGO_CAT_LANG_EN_US;
+    validate_ai(config);
     compact_behavior_overrides(config);
     compact_model_overrides(config);
     compact_removed_models(config);

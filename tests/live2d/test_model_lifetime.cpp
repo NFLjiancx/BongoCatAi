@@ -49,8 +49,16 @@ struct Resources {
             require((glIsTexture(texture) != GL_FALSE) == shared,
                 shared ? "Shared active texture was released" : "Old exclusive texture is still retained");
         }
-        for (GLuint framebuffer : framebuffers)
-            require(!glIsFramebuffer(framebuffer), "Old mask framebuffer is still retained");
+        /* GL names are recycled: a released mask id often becomes the id of
+           the mask the new model just allocated. Only an id that is alive and
+           foreign to the current model is a retained leak. */
+        for (GLuint framebuffer : framebuffers) {
+            bool shared = std::find(current.framebuffers.begin(),
+                current.framebuffers.end(), framebuffer) !=
+                current.framebuffers.end();
+            require(shared || !glIsFramebuffer(framebuffer),
+                "Old mask framebuffer is still retained");
+        }
         current.check(true);
     }
 };

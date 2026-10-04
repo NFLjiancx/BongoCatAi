@@ -87,7 +87,8 @@ bool bongo_cat_sound_shortcut_update(BongoCatSoundShortcutState *state,
     if (event->kind == BONGO_CAT_INPUT_GAMEPAD_BUTTON) {
         down = event->value > 0.5f;
         if (strlen(event->name) + 8 >= sizeof(name)) return false;
-        snprintf(name, sizeof(name), "Gamepad:%s", event->name);
+        snprintf(name, sizeof(name), "Gamepad:%.*s",
+            (int)sizeof(name) - 9, event->name);
     } else {
         if (event->kind != BONGO_CAT_INPUT_KEY_DOWN && event->kind != BONGO_CAT_INPUT_KEY_UP &&
             event->kind != BONGO_CAT_INPUT_MOUSE_DOWN && event->kind != BONGO_CAT_INPUT_MOUSE_UP)

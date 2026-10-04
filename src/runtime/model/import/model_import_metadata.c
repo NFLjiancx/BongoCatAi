@@ -102,7 +102,8 @@ void bongo_cat_import_apply_metadata(BongoCatApp *app, const char *model_id,
         if (app->settings.behavior_shortcut_count >= BONGO_CAT_BEHAVIOR_BINDING_CAP) break;
         BongoCatBehaviorShortcut *value =
             &app->settings.behavior_shortcuts[app->settings.behavior_shortcut_count++];
-        snprintf(value->id, sizeof(value->id), "%s", id);
+        snprintf(value->id, sizeof(value->id), "%.*s",
+            (int)sizeof(value->id) - 1, id);
         if (strlen(shortcut) >= sizeof(value->shortcut) ||
             (*shortcut && !bongo_cat_shortcut_equal(shortcut, shortcut))) {
             /* Never import a truncated prefix as a different, shorter chord. */

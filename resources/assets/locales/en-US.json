@@ -159,6 +159,31 @@
           "alwaysOnTop": "Toggle whether the cat window stays on top."
         }
       },
+      "ai": {
+        "title": "AI Assistant",
+        "labels": {
+          "consent": "Privacy Consent",
+          "assistant": "Voice Assistant",
+          "apiKey": "API Key",
+          "asrModel": "Speech Recognition Model",
+          "ttsModel": "Speech Synthesis Model",
+          "ttsVoice": "Speech Synthesis Voice",
+          "model": "Assistant Model"
+        },
+        "hints": {
+          "consent": "Allow voice data to be sent to AI services to enable the assistant.",
+          "assistant": "Turn the voice assistant on or off. Takes effect after restart.",
+          "restart": "Restart BongoCat to apply.",
+          "needConsent": "Accept the privacy consent first.",
+          "keySet": "Saved",
+          "keyMissing": "Not set",
+          "keyHint": "Enter a DashScope API key. Leave empty and press Enter to remove it.",
+          "asrModel": "Speech recognition model name.",
+          "ttsModel": "Speech synthesis model name.",
+          "ttsVoice": "Speech synthesis voice name.",
+          "model": "Chat model used by the assistant."
+        }
+      },
       "about": {
         "title": "About",
         "labels": {
@@ -176,6 +201,18 @@
     }
   },
   "components": {
+    "voice": {
+      "stateOff": "",
+      "stateIdle": "Idle",
+      "stateListening": "Listening",
+      "stateRecognizing": "Recognizing",
+      "stateThinking": "Thinking",
+      "stateSpeaking": "Speaking",
+      "stateError": "Error",
+      "cancel": "Cancel",
+      "close": "Close",
+      "utterances": "Heard"
+    },
     "shortcut": {
       "hints": {
         "pressRecordShortcut": "Press to record shortcut",

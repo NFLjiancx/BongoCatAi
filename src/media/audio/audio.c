@@ -105,6 +105,27 @@ bool bongo_cat_audio_is_playing(const BongoCatAudio *audio, const char *path) {
     return false;
 }
 
+bool bongo_cat_audio_play_position(const BongoCatAudio *audio,
+    const char *path, uint64_t *cursor_us) {
+    if (!audio || !audio->initialized || !path || !path[0]) return false;
+    ma_uint32 rate = ma_engine_get_sample_rate((ma_engine *)&audio->engine);
+    if (!rate) return false;
+    for (size_t i = 0; i < AUDIO_VOICES; ++i) {
+        const AudioVoice *voice = &audio->voices[i];
+        if (!voice->ready || strcmp(voice->path, path)) continue;
+        if (!ma_sound_is_playing(&voice->sound)) return false;
+        /* miniaudio counts cursor frames in the converted device format,
+           not the file's native rate; seconds are the stable unit. */
+        ma_uint64 cursor = 0;
+        if (ma_sound_get_cursor_in_pcm_frames(&voice->sound, &cursor)
+            != MA_SUCCESS) return false;
+        if (cursor_us) *cursor_us = (uint64_t)((double)cursor * 1000000.0
+            / rate);
+        return true;
+    }
+    return false;
+}
+
 void bongo_cat_audio_stop_path(BongoCatAudio *audio, const char *path) {
     if (!audio || !path || !path[0]) return;
     for (size_t i = 0; i < AUDIO_VOICES; ++i)

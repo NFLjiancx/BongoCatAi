@@ -150,6 +150,7 @@ configuration fail instead of silently selecting the diagnostic backend.
 | --- | --- | --- |
 | `BONGO_CAT_FETCH_DEPS` | `ON` | Download the pinned third-party dependencies with CMake `FetchContent`. Set `OFF` only when SDL3, yyjson, stb, miniaudio, and Nuklear are already available to CMake. |
 | `BONGO_CAT_CUBISM_SDK` | `vendor/CubismSdkForNative` | Path to the Cubism SDK for Native. |
+| `BONGO_CAT_ENABLE_VOICE_ASSISTANT` | `ON` | Build the opt-in voice assistant runtime (microphone capture, DashScope speech services, bubble window, and local assistant tasks). Set `OFF` to remove the feature entirely. |
 | `BONGO_CAT_REQUIRE_CUBISM` | `OFF` | Fail configuration when a usable Cubism SDK is unavailable. |
 | `BONGO_CAT_WARNINGS_AS_ERRORS` | `OFF` | Treat native compiler warnings as errors. |
 
@@ -331,6 +332,29 @@ other interaction data. Configuration is stored locally as well, and the app
 contains no ads, analytics tools, or user-tracking code. When an update check
 is performed, it only requests public release metadata; it does not send input,
 configuration, or usage data.
+
+### 🎙️ How do I use the voice assistant?
+
+The voice assistant is opt-in and off by default. On the **AI** preferences
+page, accept the privacy consent, enable the assistant, and provide an
+Alibaba Cloud Model Studio (DashScope) API key, either through the page or the
+`BONGO_CAT_DASHSCOPE_API_KEY` environment variable. Restart BongoCat to take
+effect. After that, speak toward the pet: your speech is transcribed in real
+time by DashScope, shown in a small bubble next to the pet, answered by the
+assistant model configured on the same page (default `qwen3.8-flash`), which
+can call built-in tools such as playing a pet behavior, showing or hiding the
+pet, reading the clock, reading and writing files and running a shell command
+locally. The reply is read back aloud with lip-sync, and the microphone stays
+open while she talks: start speaking and she stops mid-sentence and listens.
+The assistant answers in
+character: the built-in system prompt gives the pet the persona of Hoshimi
+Miyabi (星见雅) from *Zenless Zone Zero* — disciplined, terse and deadpan,
+fond of calling ordinary chores a "training exercise" — while still keeping
+replies short and plain enough to speak aloud. The key is stored only in
+`dashscope.key` inside the configuration directory. See
+[PRIVACY.md](PRIVACY.md) for exactly what is transmitted. The whole feature can
+be excluded from the build with
+`-DBONGO_CAT_ENABLE_VOICE_ASSISTANT=OFF`.
 
 ### Linux Wayland Input
 

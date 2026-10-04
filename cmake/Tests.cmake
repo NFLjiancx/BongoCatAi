@@ -197,12 +197,41 @@ if(BUILD_TESTING)
   endif()
 
   add_executable(bongo_cat_app_state_tests
-    tests/core/test_app_state.c src/core/app_state.c
-    src/runtime/model/model_behavior_state.c)
+    tests/core/test_app_state.c src/core/app_state.c src/core/shortcut.c
+    src/core/sound_shortcut.c src/runtime/model/model_behavior_state.c)
   target_link_libraries(bongo_cat_app_state_tests PRIVATE bongo_cat_warnings)
   target_include_directories(bongo_cat_app_state_tests PRIVATE
     "${BONGO_CAT_GENERATED_INCLUDE_DIR}" include tests/support)
   add_test(NAME app-state COMMAND bongo_cat_app_state_tests)
+
+  add_executable(bongo_cat_voice_logic_tests
+    tests/core/test_voice_logic.c src/runtime/voice/voice_vad.c
+    src/runtime/voice/voice_ring.c src/runtime/voice/tts_envelope.c)
+  target_link_libraries(bongo_cat_voice_logic_tests PRIVATE
+    bongo_cat_warnings SDL3::SDL3-static)
+  target_include_directories(bongo_cat_voice_logic_tests PRIVATE
+    "${BONGO_CAT_GENERATED_INCLUDE_DIR}" include tests/support
+    src/runtime/voice)
+  add_test(NAME voice-logic COMMAND bongo_cat_voice_logic_tests)
+
+  add_executable(bongo_cat_dashscope_json_tests
+    tests/core/test_dashscope_json.c src/runtime/voice/dashscope_json.c)
+  target_link_libraries(bongo_cat_dashscope_json_tests PRIVATE
+    bongo_cat_warnings SDL3::SDL3-static yyjson)
+  target_include_directories(bongo_cat_dashscope_json_tests PRIVATE
+    "${BONGO_CAT_GENERATED_INCLUDE_DIR}" include tests/support
+    src/runtime/voice)
+  add_test(NAME dashscope-json COMMAND bongo_cat_dashscope_json_tests)
+
+  add_executable(bongo_cat_assistant_request_tests
+    tests/core/test_assistant_request.c src/runtime/voice/assistant_http.c
+    src/runtime/voice/assistant_tools.c src/core/file.c)
+  target_link_libraries(bongo_cat_assistant_request_tests PRIVATE
+    bongo_cat_warnings SDL3::SDL3-static yyjson CURL::libcurl)
+  target_include_directories(bongo_cat_assistant_request_tests PRIVATE
+    "${BONGO_CAT_GENERATED_INCLUDE_DIR}" include tests/support
+    src/runtime/voice)
+  add_test(NAME assistant-request COMMAND bongo_cat_assistant_request_tests)
 
   add_executable(bongo_cat_gamepad_tests
     tests/core/test_gamepad.c src/runtime/input/gamepad.c
@@ -415,6 +444,7 @@ if(BUILD_TESTING)
     target_link_libraries(bongo_cat_ui_tests PRIVATE m)
     target_link_libraries(bongo_cat_app_state_tests PRIVATE m)
     target_link_libraries(bongo_cat_gamepad_tests PRIVATE m)
+    target_link_libraries(bongo_cat_voice_logic_tests PRIVATE m)
   endif()
 
   if(APPLE)

@@ -159,6 +159,31 @@
           "alwaysOnTop": "ペットウィンドウを常に手前に表示するか切り替えます。"
         }
       },
+      "ai": {
+        "title": "AI アシスタント",
+        "labels": {
+          "consent": "プライバシー同意",
+          "assistant": "音声アシスタント",
+          "apiKey": "API キー",
+          "asrModel": "音声認識モデル",
+          "ttsModel": "音声合成モデル",
+          "ttsVoice": "音声合成ボイス",
+          "model": "アシスタントモデル"
+        },
+        "hints": {
+          "consent": "アシスタントを有効にするため、音声データを AI サービスに送信することを許可します。",
+          "assistant": "音声アシスタントをオン/オフします。再起動後に反映されます。",
+          "restart": "適用するには BongoCat を再起動してください。",
+          "needConsent": "先にプライバシー同意に同意してください。",
+          "keySet": "保存済み",
+          "keyMissing": "未設定",
+          "keyHint": "DashScope の API キーを入力してください。空にして Enter を押すと削除されます。",
+          "asrModel": "音声認識モデルの名前。",
+          "ttsModel": "音声合成モデルの名前。",
+          "ttsVoice": "音声合成ボイスの名前。",
+          "model": "アシスタントが使うチャットモデル。"
+        }
+      },
       "about": {
         "title": "このアプリについて",
         "labels": {
@@ -176,6 +201,18 @@
     }
   },
   "components": {
+    "voice": {
+      "stateOff": "",
+      "stateIdle": "待機",
+      "stateListening": "聞き取り中",
+      "stateRecognizing": "認識中",
+      "stateThinking": "思考中",
+      "stateSpeaking": "読み上げ中",
+      "stateError": "エラー",
+      "cancel": "キャンセル",
+      "close": "閉じる",
+      "utterances": "聞こえた文"
+    },
     "shortcut": {
       "hints": {
         "pressRecordShortcut": "キーを押してショートカットを記録",

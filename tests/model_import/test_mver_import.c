@@ -137,6 +137,36 @@ static void behavior_labels_add_font_glyphs(void) {
     memcpy(app->settings.behavior_shortcuts[0].label, custom_label,
         sizeof(custom_label));
     app->settings.behavior_shortcut_count = 1;
+    /* The behavior dialog opens against the loaded model, so the catalog has to
+       contain it. A bare model3 with no motions or expressions keeps the
+       assertion about the app's own labels. */
+    char *temporary = SDL_GetCurrentDirectory();
+    CHECK(temporary != NULL);
+    char fixture[BONGO_CAT_PATH_CAP], setting[BONGO_CAT_PATH_CAP];
+    bool fixture_ready = temporary &&
+        snprintf(fixture, sizeof(fixture), "%s/bongocat-glyph-dialog-%llu",
+            temporary, (unsigned long long)SDL_GetTicksNS()) > 0 &&
+        child(setting, sizeof(setting), fixture, "cat.model3.json", false) &&
+        SDL_CreateDirectory(fixture) &&
+        write_text(setting, "{\"Version\":3,\"FileReferences\":{}}");
+    SDL_free(temporary);
+    CHECK(fixture_ready);
+    if (fixture_ready) {
+        BongoCatModelEntry *entry = &app->models.entries[0];
+        snprintf(entry->id, sizeof(entry->id), "glyph-dialog-fixture");
+        snprintf(entry->package_id, sizeof(entry->package_id), "%s", entry->id);
+        snprintf(entry->directory, sizeof(entry->directory), "%s", fixture);
+        snprintf(entry->adapter_directory, sizeof(entry->adapter_directory),
+            "%s", fixture);
+        snprintf(entry->storage_directory, sizeof(entry->storage_directory),
+            "%s", fixture);
+        snprintf(entry->setting_file, sizeof(entry->setting_file),
+            "%s", "cat.model3.json");
+        entry->source_format = BONGO_CAT_MODEL_SOURCE_BUILTIN;
+        entry->preset = true;
+        app->models.count = 1;
+        snprintf(app->loaded_model, sizeof(app->loaded_model), "%s", entry->id);
+    }
     uint32_t ranges[64] = {0x20, 0x7e, 0};
     bongo_cat_preferences_model_glyphs(app, ranges,
         sizeof(ranges) / sizeof(ranges[0]));
@@ -156,14 +186,6 @@ static void behavior_labels_add_font_glyphs(void) {
         preferences->glyph_ranges[0] = 0x20;
         preferences->glyph_ranges[1] = 0x7e;
         CHECK(!bongo_cat_preferences_behavior_glyphs_ready(preferences));
-        bongo_cat_preferences_behavior_dialog_open(preferences);
-        CHECK(preferences->font_reload_pending);
-        bongo_cat_preferences_model_glyphs(app, preferences->glyph_ranges,
-            sizeof(preferences->glyph_ranges) / sizeof(preferences->glyph_ranges[0]));
-        CHECK(bongo_cat_preferences_behavior_glyphs_ready(preferences));
-        preferences->font_reload_pending = false;
-        bongo_cat_preferences_behavior_dialog_open(preferences);
-        CHECK(!preferences->font_reload_pending);
         CHECK(bongo_cat_behaviors_reserve(&app->behaviors, 600, NULL));
         app->behaviors.count = 600;
         for (size_t i = 0; i < app->behaviors.count; ++i) {
@@ -179,8 +201,23 @@ static void behavior_labels_add_font_glyphs(void) {
             sizeof(preferences->glyph_ranges) / sizeof(preferences->glyph_ranges[0]));
         CHECK(bongo_cat_preferences_behavior_glyphs_ready(preferences));
         CHECK(range_has(preferences->glyph_ranges, 0x4e02 + 599 * 4));
+        /* Reopen from an ASCII-only atlas: the dialog has to ask for the
+           glyphs its model adds, and must not ask twice. */
+        memset(preferences->glyph_ranges, 0, sizeof(preferences->glyph_ranges));
+        preferences->glyph_ranges[0] = 0x20;
+        preferences->glyph_ranges[1] = 0x7e;
+        CHECK(!bongo_cat_preferences_behavior_glyphs_ready(preferences));
+        bongo_cat_preferences_behavior_dialog_open(preferences);
+        CHECK(preferences->font_reload_pending);
+        bongo_cat_preferences_model_glyphs(app, preferences->glyph_ranges,
+            sizeof(preferences->glyph_ranges) / sizeof(preferences->glyph_ranges[0]));
+        CHECK(bongo_cat_preferences_behavior_glyphs_ready(preferences));
+        preferences->font_reload_pending = false;
+        bongo_cat_preferences_behavior_dialog_open(preferences);
+        CHECK(!preferences->font_reload_pending);
         free(preferences);
     }
+    if (fixture_ready) bongo_cat_model_remove_tree(fixture, NULL);
     bongo_cat_behaviors_clear(&app->behaviors); free(app);
 }
 

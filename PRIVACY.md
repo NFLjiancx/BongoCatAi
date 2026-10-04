@@ -20,7 +20,9 @@ BongoCat does not:
 * Sell or share personal data with third parties
 
 Keyboard, mouse, and gamepad input is processed locally to animate the pet and
-is not sent to a remote service.
+is not sent to a remote service. The optional voice assistant is the only
+feature that transmits user content off the device, and only after you enable
+it explicitly. See [Voice Assistant](#voice-assistant) below.
 
 On Linux, experimental Wayland evdev monitoring is disabled by default and
 requires explicit opt-in with `BONGOCAT_ENABLE_EVDEV=1`. When enabled and
@@ -63,6 +65,17 @@ The following categories may be stored locally:
    and other resources are stored in the local data and models directories.
    BongoCat does not transmit these files.
 
+5. **Voice assistant settings and credentials**
+   When the optional voice assistant is used, the `ai` section of
+   `config/settings.json` stores only non-secret preferences: enabled state,
+   privacy consent, and the speech recognition, speech synthesis and assistant
+   model names. Your DashScope API key is stored in a
+   separate `dashscope.key` file in the configuration directory with
+   owner-only permissions, and the latest synthesized reply audio is cached as
+   `tts-last.wav`. The key is never written to settings, logs, or any file
+   other than `dashscope.key`, and is only sent to the DashScope service as
+   request authentication when the assistant is enabled.
+
 ## Network Access
 
 BongoCat does not require a network connection for normal operation. Network
@@ -84,12 +97,37 @@ access may occur in these cases:
 BongoCat does not use remote images, advertising networks, or analytics
 services as part of its normal runtime.
 
+### Voice Assistant
+
+The voice assistant is disabled by default and requires both an API key and an
+explicit privacy consent on the AI preferences page. When it is enabled,
+BongoCat connects to Alibaba Cloud DashScope over TLS and sends:
+
+* **Microphone audio while you speak:** Short utterances captured from the
+  default microphone are streamed for speech recognition
+* **Recognized text and conversation turns:** The recognized sentence, the
+  assistant's tool calls and their local results, and the reply text are sent
+  to `https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions`,
+  with live web search enabled, so recent information may be retrieved on your
+  behalf
+* **Synthesis requests:** The final reply text is sent as a speech synthesis
+  request when a spoken reply is produced
+
+No audio is transmitted while the assistant is disabled, and your microphone
+audio is never written to disk: utterances are processed in a bounded
+in-memory buffer.
+The assistant runs inside BongoCat: when it asks to play a behavior, show or
+hide the pet, read or write a file, or run a shell command, that work happens
+locally on your device with your user's permissions, and only the request and
+its textual result are shared with DashScope as conversation context.
+
 ## Data Protection and Deletion
 
 Application data remains on your device and is not synchronized by BongoCat.
 You can remove it by closing BongoCat and deleting its platform-specific
 configuration, data, cache, state, and log directories. Deleting these files
-also removes your settings, imported models, and local logs.
+also removes your settings, imported models, local logs, and stored voice
+assistant preferences and API key file.
 
 ## Permission Usage
 
@@ -99,8 +137,11 @@ Permissions used by BongoCat are limited to core features:
   models, and user-provided resources
 * **Keyboard, mouse, and gamepad access:** Detecting local input so the pet can
   react and follow the configured behavior
-* **Network access on Windows:** Checking GitHub for release information when
-  update checking is used
+* **Network access:** Checking GitHub for release information on Windows when
+  update checking is used, and the DashScope speech service when the optional
+  voice assistant is enabled
+* **Microphone access:** Only while the optional voice assistant is enabled,
+  to stream short utterances for speech recognition
 * **Opening external URLs:** Only when you select a link in the application
 * **Startup integration:** Only when you enable a start-with-system option,
   where supported

@@ -133,10 +133,26 @@ typedef struct BongoCatActiveBehavior {
 
 #define BONGO_CAT_SETTINGS_EXTENSIONS_CAP 4096
 
+#define BONGO_CAT_AI_MODEL_CAP 96
+#define BONGO_CAT_AI_DEFAULT_ASR_MODEL "paraformer-realtime-v2"
+#define BONGO_CAT_AI_DEFAULT_TTS_MODEL "qwen-audio-3.1-tts-flash"
+#define BONGO_CAT_AI_DEFAULT_TTS_VOICE "yunhuanhuan_v3.1"
+#define BONGO_CAT_AI_DEFAULT_ASSISTANT_MODEL "qwen3.8-flash"
+
+typedef struct BongoCatAiPreferences {
+    bool enabled;
+    bool privacy_consent;
+    char asr_model[BONGO_CAT_AI_MODEL_CAP];
+    char tts_model[BONGO_CAT_AI_MODEL_CAP];
+    char tts_voice[BONGO_CAT_AI_MODEL_CAP];
+    char assistant_model[BONGO_CAT_AI_MODEL_CAP];
+} BongoCatAiPreferences;
+
 typedef struct BongoCatSettings {
     BongoCatModelPreferences model;
     BongoCatWindowPreferences window;
     BongoCatApplicationPreferences app;
+    BongoCatAiPreferences ai;
     BongoCatShortcutPreferences shortcuts;
     BongoCatBehaviorShortcut behavior_shortcuts[BONGO_CAT_BEHAVIOR_BINDING_CAP];
     size_t behavior_shortcut_count;

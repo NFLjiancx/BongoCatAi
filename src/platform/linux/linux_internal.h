@@ -32,6 +32,8 @@ bool bongo_cat_linux_x11_supported(const BongoCatPlatform *platform);
 bool bongo_cat_linux_x11_xwayland(const BongoCatPlatform *platform);
 void bongo_cat_linux_x11_click_through(BongoCatPlatform *platform, bool enabled);
 void bongo_cat_linux_x11_set_above(BongoCatPlatform *platform, bool enabled);
+/* Applies the above-state to any X11 window, not only the pet's. */
+void bongo_cat_linux_x11_pin_window_above(SDL_Window *window);
 void bongo_cat_linux_x11_configure_capture_window(BongoCatPlatform *platform);
 void bongo_cat_linux_x11_begin_drag(BongoCatPlatform *platform);
 

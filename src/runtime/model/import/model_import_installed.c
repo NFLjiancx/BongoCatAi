@@ -154,8 +154,9 @@ static bool add_package(InstalledModelScan *scan, const char *directory,
         }
         char display[BONGO_CAT_ID_CAP];
         if (discovery->count > 1)
-            snprintf(display, sizeof(display), "%s - %s", package_id,
-                variant_name(candidate));
+            snprintf(display, sizeof(display), "%.*s - %.*s",
+                (int)((sizeof(display) - 4) / 2), package_id,
+                (int)((sizeof(display) - 4) / 2), variant_name(candidate));
         else snprintf(display, sizeof(display), "%s", package_id);
         BongoCatModelEntry *entry =
             &scan->app->models.entries[scan->app->models.count++];

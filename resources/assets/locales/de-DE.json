@@ -159,6 +159,31 @@
           "alwaysOnTop": "Schaltet um, ob das Begleiterfenster im Vordergrund bleibt."
         }
       },
+      "ai": {
+        "title": "KI-Assistent",
+        "labels": {
+          "consent": "Datenschutz-Zustimmung",
+          "assistant": "Sprachassistent",
+          "apiKey": "API-Schlüssel",
+          "asrModel": "Spracherkennungsmodell",
+          "ttsModel": "Sprachsynthesemodell",
+          "ttsVoice": "Sprachsynthesestimme",
+          "model": "Assistenzmodell"
+        },
+        "hints": {
+          "consent": "Erlaubt das Senden von Audiodaten an KI-Dienste, um den Assistenten zu aktivieren.",
+          "assistant": "Sprachassistent ein- oder ausschalten. Wirkt nach einem Neustart.",
+          "restart": "BongoCat neu starten, um die Änderung anzuwenden.",
+          "needConsent": "Bitte zuerst die Datenschutz-Zustimmung erteilen.",
+          "keySet": "Gespeichert",
+          "keyMissing": "Nicht gesetzt",
+          "keyHint": "DashScope-API-Schlüssel eingeben. Leer lassen und Enter drücken, um ihn zu entfernen.",
+          "asrModel": "Name des Spracherkennungsmodells.",
+          "ttsModel": "Name des Sprachsynthesemodells.",
+          "ttsVoice": "Name der Sprachsynthesestimme.",
+          "model": "Chatmodell des Assistenten."
+        }
+      },
       "about": {
         "title": "Info",
         "labels": {
@@ -176,6 +201,18 @@
     }
   },
   "components": {
+    "voice": {
+      "stateOff": "",
+      "stateIdle": "Bereit",
+      "stateListening": "Hören",
+      "stateRecognizing": "Erkennen",
+      "stateThinking": "Denken",
+      "stateSpeaking": "Sprechen",
+      "stateError": "Fehler",
+      "cancel": "Abbrechen",
+      "close": "Schließen",
+      "utterances": "Gehört"
+    },
     "shortcut": {
       "hints": {
         "pressRecordShortcut": "Drücken, um das Tastenkürzel aufzuzeichnen",

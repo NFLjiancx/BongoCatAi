@@ -31,7 +31,9 @@ void bongo_cat_preferences_page_cache_clear(BongoCatPreferences *value,
     int previous_page, int next_page) {
     if (!value || previous_page == next_page) return;
     bool released = false;
-    if (previous_page == 3 && next_page != 3) {
+    if (previous_page == 3 && next_page != 3)
+        bongo_cat_preferences_ai_edit_finish(value, true);
+    if (previous_page == 4 && next_page != 4) {
         value->about.qr_open = false;
         bongo_cat_preferences_support_assets_clear(value);
         released = true;
@@ -43,6 +45,7 @@ BongoCatPreferences *bongo_cat_preferences_create(BongoCatApp *app) {
     if (!app) return NULL;
     BongoCatPreferences *value = calloc(1, sizeof(*value));
     if (value) { value->app = app;
+        value->ai_edit_field = -1;
         value->import_dialog = bongo_cat_preferences_import_create();
         if (!value->import_dialog) { free(value); return NULL; } }
     if (value && app->smoke_preference_page >= 0)
@@ -259,6 +262,7 @@ bool bongo_cat_preferences_event(BongoCatPreferences *value, const SDL_Event *ev
         bongo_cat_pref_controls_reset(&value->ui.context);
     }
     if (bongo_cat_preferences_model_rename_event(value, event)) return true;
+    if (bongo_cat_preferences_ai_edit_event(value, event)) return true;
     if (bongo_cat_preferences_behavior_rename_event(value, event)) return true;
     if (bongo_cat_preferences_shortcut_event(value, event)) return true;
     if (event->type == SDL_EVENT_WINDOW_CLOSE_REQUESTED) {

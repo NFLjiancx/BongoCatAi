@@ -100,8 +100,8 @@ bool bongo_cat_update_parse_release(const char *json, const char *platform,
         yyjson_obj_get(root, "tag_name"), true, false);
     const char *version = tag[0] == 'v' || tag[0] == 'V' ? tag + 1 : tag;
     if (valid) valid = bongo_cat_update_version_valid(version);
-    if (valid) snprintf(release->version, sizeof(release->version), "%s",
-        version);
+    if (valid) snprintf(release->version, sizeof(release->version), "%.*s",
+        (int)sizeof(release->version) - 1, version);
     if (valid) valid = copy_text(release->release_url,
         sizeof(release->release_url), yyjson_obj_get(root, "html_url"), true,
         false) &&

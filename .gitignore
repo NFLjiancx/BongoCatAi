@@ -54,6 +54,12 @@ Desktop.ini
 # Local reference files
 /.reference/
 
+# Cubism SDK download (extracted into /vendor/CubismSdkForNative/)
+/CubismSdkForNative-*.zip
+
+# Local model packs (imported through the preferences model page)
+/models/
+
 /docs/*
 !/docs/
 !/docs/README.zh-CN.md

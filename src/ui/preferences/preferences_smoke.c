@@ -69,7 +69,7 @@ void bongo_cat_preferences_smoke_frame(BongoCatPreferences *value) {
     if (!value->app->smoke) return;
     bool valid = bongo_cat_ui_frame_valid(&value->ui);
     bool assets_valid = value->logo_texture && value->icon_texture &&
-        (value->page != 3 ||
+        (value->page != 4 ||
             (value->catime_texture && value->vlaina_texture));
     if (!value->frame_checked) {
         value->frame_checked = true;

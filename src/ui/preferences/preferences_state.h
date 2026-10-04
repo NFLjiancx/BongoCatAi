@@ -97,13 +97,13 @@ struct BongoCatPreferences {
     float pending_raster_scale;
     uint64_t raster_retry_ns;
     uint64_t render_retry_ns;
-    float scroll_current[4];
-    float scroll_target[4];
-    bool scroll_ready[4];
+    float scroll_current[5];
+    float scroll_target[5];
+    bool scroll_ready[5];
     bool page_seen;
     int last_page;
     uint64_t page_transition_ns;
-    BongoCatPreferenceNotice notices[4];
+    BongoCatPreferenceNotice notices[5];
     BongoCatBehaviorCatalog *behavior_catalog;
     char behavior_model_id[BONGO_CAT_ID_CAP];
     bool behavior_dialog;
@@ -116,6 +116,8 @@ struct BongoCatPreferences {
     BongoCatPreferencesScrollbar behavior_scrollbar;
     BongoCatPreferencesTextSession behavior_rename;
     BongoCatPreferencesTextSession model_rename;
+    BongoCatPreferencesTextSession ai_edit;
+    int ai_edit_field;
     bool native_drag;
     bool chrome_dragging;
     bool live_resize_active;

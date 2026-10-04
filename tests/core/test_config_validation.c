@@ -180,9 +180,40 @@ static void check_behavior_companions(void) {
     CHECK(bongo_cat_file_remove("bongocat-audio-config-test.json"));
 }
 
+static void check_ai_preferences(void) {
+    static BongoCatSettings settings, loaded;
+    bongo_cat_settings_defaults(&settings);
+    CHECK(!settings.ai.enabled && !settings.ai.privacy_consent);
+    CHECK(strcmp(settings.ai.asr_model, "paraformer-realtime-v2") == 0);
+    CHECK(strcmp(settings.ai.tts_model, "qwen-audio-3.1-tts-flash") == 0);
+    CHECK(strcmp(settings.ai.tts_voice, "yunhuanhuan_v3.1") == 0);
+    settings.ai.privacy_consent = true;
+    settings.ai.enabled = true;
+    settings.ai.asr_model[0] = '\0';
+    bongo_cat_settings_validate(&settings);
+    CHECK(settings.ai.enabled);
+    CHECK(strcmp(settings.ai.asr_model, "paraformer-realtime-v2") == 0);
+    settings.ai.privacy_consent = false;
+    bongo_cat_settings_validate(&settings);
+    CHECK(!settings.ai.enabled);
+    snprintf(settings.ai.assistant_model,
+        sizeof(settings.ai.assistant_model), "qwen3.8-flash");
+    CHECK(bongo_cat_settings_save("bongocat-ai-config-test.json", &settings,
+        NULL) == BONGO_CAT_OK);
+    bongo_cat_settings_defaults(&loaded);
+    loaded.ai.privacy_consent = true;
+    CHECK(bongo_cat_settings_load("bongocat-ai-config-test.json", &loaded,
+        NULL) == BONGO_CAT_OK);
+    CHECK(!loaded.ai.privacy_consent && !loaded.ai.enabled);
+    CHECK(!strcmp(loaded.ai.assistant_model, "qwen3.8-flash"));
+    CHECK(!strcmp(loaded.ai.tts_voice, "yunhuanhuan_v3.1"));
+    CHECK(bongo_cat_file_remove("bongocat-ai-config-test.json"));
+}
+
 void test_config_validation(void) {
     check_defaults_and_validation();
     check_behavior_companions();
+    check_ai_preferences();
     check_shortcuts();
     check_override_canonicalization();
 }

@@ -111,7 +111,7 @@ void bongo_cat_ui_tabs(struct nk_context *context, const char *const *labels,
             (hover ? p.accent : p.muted);
         tab_content(canvas, context, tile, labels[i], icons ? icons[i] : i, color,
             draw_icon, icon_userdata);
-        if (about_badge && i == count - 1) {
+        if (about_badge && i == 4) {
             nk_fill_circle(canvas, nk_rect(tile.x + tile.w - 11.0f,
                 tile.y + 7.0f, 7.0f, 7.0f), p.danger);
         }

@@ -144,7 +144,7 @@ void bongo_cat_preferences_notice_draw(BongoCatPreferences *value,
     (void)height;
     if (!value) return;
     uint64_t now = SDL_GetTicksNS();
-    BongoCatPreferenceNotice *items[4];
+    BongoCatPreferenceNotice *items[5];
     size_t count = active_notices(value, now, items);
     float y = 20.0f;
     for (size_t i = 0; i < count; ++i)

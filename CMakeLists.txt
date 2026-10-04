@@ -5,6 +5,7 @@ include(cmake/Version.cmake)
 include(FetchContent)
 include(CTest)
 option(BONGO_CAT_FETCH_DEPS "Download pinned open-source dependencies" ON)
+option(BONGO_CAT_ENABLE_VOICE_ASSISTANT "Build the voice assistant runtime" ON)
 option(BONGO_CAT_REQUIRE_CUBISM "Fail configuration when Cubism SDK is absent" OFF)
 option(BONGO_CAT_WARNINGS_AS_ERRORS "Treat native source warnings as errors" OFF)
 option(BONGO_CAT_STATIC_ANALYZER "Run GCC's static analyzer on project C sources" OFF)
@@ -84,6 +85,7 @@ else()
   message(WARNING "Cubism SDK missing; building the diagnostic backend")
 endif()
 add_library(bongo_cat_core STATIC
+  src/core/ai_key_store.c
   src/core/config_defaults.c src/core/config_model_state.c src/core/config_session_defaults.c src/core/config_names.c src/core/config_fields.c src/core/config_io.c src/core/config_settings_save.c
   src/core/config_file.c src/core/config_session_io.c
   src/core/error.c
@@ -115,6 +117,34 @@ target_include_directories(bongo_cat_runtime SYSTEM PRIVATE
   ${BONGO_CAT_STB_INCLUDE_DIR} ${BONGO_CAT_NUKLEAR_INCLUDE_DIR})
 target_link_libraries(bongo_cat_runtime PRIVATE bongo_cat_warnings bongo_cat_archive)
 target_link_libraries(bongo_cat_runtime PUBLIC bongo_cat_core SDL3::SDL3-static OpenGL::GL ${BONGO_CAT_MINIAUDIO_TARGET})
+if(BONGO_CAT_ENABLE_VOICE_ASSISTANT AND BONGO_CAT_WS_TARGET)
+  target_link_libraries(bongo_cat_runtime PUBLIC ${BONGO_CAT_WS_TARGET})
+  target_compile_definitions(bongo_cat_runtime PUBLIC BONGO_CAT_HAS_WS_BACKEND=1)
+  if(BONGO_CAT_WS_SOURCE_DIR)
+    target_include_directories(bongo_cat_runtime SYSTEM PUBLIC
+      "${BONGO_CAT_WS_SOURCE_DIR}/include" "${BONGO_CAT_WS_BINARY_DIR}/include"
+      "${BONGO_CAT_WS_BINARY_DIR}")
+  endif()
+endif()
+if(BONGO_CAT_ENABLE_VOICE_ASSISTANT)
+  add_executable(bongo_cat_ws_probe EXCLUDE_FROM_ALL
+    src/tools/ws_probe.c src/runtime/voice/ws_client_lws.c
+    src/runtime/voice/ws_stub.c)
+  target_include_directories(bongo_cat_ws_probe PRIVATE
+    "${BONGO_CAT_GENERATED_INCLUDE_DIR}" include src/runtime/voice)
+  target_link_libraries(bongo_cat_ws_probe PRIVATE bongo_cat_warnings
+    SDL3::SDL3-static)
+  if(BONGO_CAT_WS_TARGET)
+    target_link_libraries(bongo_cat_ws_probe PRIVATE ${BONGO_CAT_WS_TARGET})
+    target_compile_definitions(bongo_cat_ws_probe PRIVATE
+      BONGO_CAT_HAS_WS_BACKEND=1)
+    if(BONGO_CAT_WS_SOURCE_DIR)
+      target_include_directories(bongo_cat_ws_probe SYSTEM PRIVATE
+        "${BONGO_CAT_WS_SOURCE_DIR}/include" "${BONGO_CAT_WS_BINARY_DIR}/include"
+        "${BONGO_CAT_WS_BINARY_DIR}")
+    endif()
+  endif()
+endif()
 if(MSVC)
   set_source_files_properties(src/media/stb_image_impl.c src/media/image_resize.c src/ui/backend/nuklear_impl.c src/ui/preferences/about/preferences_about_svg.c
     PROPERTIES COMPILE_OPTIONS "/W0")

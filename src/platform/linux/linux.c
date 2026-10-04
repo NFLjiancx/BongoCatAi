@@ -207,6 +207,12 @@ void bongo_cat_platform_raise_window(SDL_Window *window) {
     else SDL_ShowWindow(window);
     SDL_RaiseWindow(window);
 }
+void bongo_cat_platform_pin_above(SDL_Window *window) {
+    if (!window) return;
+    /* SDL only sends the state request when its own flag flips, and helper
+       windows set the flag at creation, so ask the compositor directly. */
+    bongo_cat_linux_x11_pin_window_above(window);
+}
 
 bool bongo_cat_platform_set_geometry(BongoCatPlatform *platform,
     int x, int y, int width, int height) {

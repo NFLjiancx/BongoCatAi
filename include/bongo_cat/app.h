@@ -18,6 +18,8 @@ typedef struct BongoCatI18n BongoCatI18n;
 typedef struct BongoCatMultiPetRuntime BongoCatMultiPetRuntime;
 typedef struct BongoCatModelRefresh BongoCatModelRefresh;
 typedef struct BongoCatUpdateService BongoCatUpdateService;
+typedef struct BongoCatVoice BongoCatVoice;
+typedef struct BongoCatBubble BongoCatBubble;
 
 #define BONGO_CAT_MODEL_COVER_PENDING_CAP 8
 
@@ -76,6 +78,8 @@ typedef struct BongoCatApp {
     BongoCatMultiPetRuntime *multi_pet;
     BongoCatModelRefresh *model_refresh;
     BongoCatUpdateService *update;
+    BongoCatVoice *voice;
+    BongoCatBubble *bubble;
     SDL_Window *window;
     void *gl_context;
     char settings_path[BONGO_CAT_PATH_CAP];
@@ -192,6 +196,9 @@ typedef struct BongoCatApp {
     bool pointer_cursor_locked;
     bool window_minimized;
     bool context_menu_requested;
+    /* Set by the AI page when a saved key or model needs the voice workers
+       rebuilt; the main loop performs it. */
+    bool voice_reload_requested;
     bool context_menu_active;
     bool context_menu_close_requested;
     double pointer_x, pointer_y;

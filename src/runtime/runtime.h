@@ -5,6 +5,8 @@
 #include "bongo_cat/runtime_diagnostics.h"
 #include "bongo_cat/memory_policy.h"
 #include "update_service.h"
+#include "voice_service.h"
+#include "bubble_window.h"
 #include "window_snapshot.h"
 #include <SDL3/SDL.h>
 
@@ -14,6 +16,9 @@ bool bongo_cat_app_initialize(BongoCatApp *app, int argc,
 void bongo_cat_app_loop(BongoCatApp *app);
 BongoCatResult bongo_cat_model_catalog_scan(BongoCatApp *app, bool cleanup,
     const char *nearby_root);
+/* Merge the packaged built-in models into the catalog so a damaged installed
+   copy cannot be the last word on startup. */
+bool bongo_cat_model_catalog_add_bundled(BongoCatApp *app, bool replace);
 void bongo_cat_model_catalog_finish(BongoCatApp *app);
 bool bongo_cat_mver_shortcuts_load(BongoCatApp *app, const BongoCatModelEntry *model,
     BongoCatError *error);

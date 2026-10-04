@@ -159,6 +159,31 @@
           "alwaysOnTop": "Cambia si la ventana de la mascota permanece por encima."
         }
       },
+      "ai": {
+        "title": "Asistente de IA",
+        "labels": {
+          "consent": "Consentimiento de privacidad",
+          "assistant": "Asistente de voz",
+          "apiKey": "Clave de API",
+          "asrModel": "Modelo de reconocimiento de voz",
+          "ttsModel": "Modelo de síntesis de voz",
+          "ttsVoice": "Voz de síntesis",
+          "model": "Modelo del asistente"
+        },
+        "hints": {
+          "consent": "Permite enviar datos de voz a los servicios de IA para activar el asistente.",
+          "assistant": "Activa o desactiva el asistente de voz. Se aplica tras reiniciar.",
+          "restart": "Reinicia BongoCat para aplicar los cambios.",
+          "needConsent": "Acepta primero el consentimiento de privacidad.",
+          "keySet": "Guardado",
+          "keyMissing": "Sin configurar",
+          "keyHint": "Introduce una clave de API de DashScope. Déjala vacía y pulsa Entrar para eliminarla.",
+          "asrModel": "Nombre del modelo de reconocimiento de voz.",
+          "ttsModel": "Nombre del modelo de síntesis de voz.",
+          "ttsVoice": "Nombre de la voz de síntesis.",
+          "model": "Modelo de chat del asistente."
+        }
+      },
       "about": {
         "title": "Acerca de",
         "labels": {
@@ -176,6 +201,18 @@
     }
   },
   "components": {
+    "voice": {
+      "stateOff": "",
+      "stateIdle": "Inactivo",
+      "stateListening": "Escuchando",
+      "stateRecognizing": "Reconociendo",
+      "stateThinking": "Pensando",
+      "stateSpeaking": "Hablando",
+      "stateError": "Error",
+      "cancel": "Cancelar",
+      "close": "Cerrar",
+      "utterances": "Escuchadas"
+    },
     "shortcut": {
       "hints": {
         "pressRecordShortcut": "Pulse para registrar el atajo",

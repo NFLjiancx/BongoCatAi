@@ -62,8 +62,8 @@ static SDL_JoystickID attach_gamepad(SDL_Joystick **joystick) {
     desc.button_mask = (1u << SDL_GAMEPAD_BUTTON_COUNT) - 1u;
     desc.name = "BongoCat state synchronization test";
     SDL_JoystickID id = SDL_AttachVirtualJoystick(&desc);
-    CHECK(id != 0);
-    *joystick = id ? SDL_OpenJoystick(id) : NULL;
+    if (!id) return 0;
+    *joystick = SDL_OpenJoystick(id);
     CHECK(*joystick != NULL);
     if (*joystick) {
         CHECK(SDL_SetJoystickVirtualAxis(*joystick,
@@ -106,6 +106,14 @@ int main(void) {
     }
     SDL_Joystick *joystick = NULL;
     SDL_JoystickID id = attach_gamepad(&joystick);
+    if (!id) {
+        /* Virtual joysticks are a build option of SDL (it needs the HIDAPI
+           joystick driver), and a runtime without them has nothing to test. */
+        fprintf(stderr, "Skipping virtual gamepad test: %s\n",
+            SDL_GetError()[0] ? SDL_GetError() : "cannot attach a virtual joystick");
+        SDL_Quit();
+        return 77;
+    }
     if (!joystick) { SDL_Quit(); return 1; }
     app.live2d = (BongoCatLive2D *)&app;
     app.loaded_mode = BONGO_CAT_MODE_GAMEPAD;
@@ -116,7 +124,8 @@ int main(void) {
     app.behaviors.count = 1;
     app.settings.behavior_shortcut_count = 1;
     BongoCatBehaviorShortcut *binding = &app.settings.behavior_shortcuts[0];
-    snprintf(binding->id, sizeof(binding->id), "%s", behavior.id);
+    snprintf(binding->id, sizeof(binding->id), "%.*s",
+        (int)sizeof(binding->id) - 1, behavior.id);
     snprintf(binding->shortcut, sizeof(binding->shortcut), "Gamepad:South");
 
     /* Startup must see held buttons immediately, but ignore center drift and

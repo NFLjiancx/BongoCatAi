@@ -93,8 +93,8 @@ set(SENSITIVE_RULES
   "SDL_INIT_GAMEPAD|src/runtime/input/gamepad.c"
   "SDL_OpenGamepad|src/runtime/input/gamepad.c"
   "SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS|src/runtime/input/gamepad.c"
-  "SDL_CreateProcessWithProperties|src/runtime/model/multi_pet_process.c"
-  "SDL_KillProcess|src/runtime/model/multi_pet_process.c")
+  "SDL_CreateProcessWithProperties|src/runtime/model/multi_pet_process.c|src/runtime/voice/assistant_tools.c"
+  "SDL_KillProcess|src/runtime/model/multi_pet_process.c|src/runtime/voice/assistant_tools.c")
 foreach(RULE IN LISTS SENSITIVE_RULES)
   string(REPLACE "|" ";" PARTS "${RULE}")
   list(POP_FRONT PARTS CAPABILITY)

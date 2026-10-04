@@ -47,6 +47,16 @@ static bool load_selected_model(BongoCatApp *app, BongoCatError *error) {
     }
     for (size_t i = 0; i < app->models.count; ++i)
         if (bongo_cat_app_select_model(app, app->models.entries[i].id)) return true;
+    /* Stored built-ins may themselves be damaged. Retry the packaged assets
+       before treating a model failure as a startup failure. */
+    if (bongo_cat_model_catalog_add_bundled(app, true)) {
+        for (size_t i = 1; i < 4; ++i)
+            if (bongo_cat_app_select_model(app, candidates[i])) {
+                SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION,
+                    "Recovered startup using bundled model %s", candidates[i]);
+                return true;
+            }
+    }
     bongo_cat_error_set(error, BONGO_CAT_ERROR_CUBISM,
         "No usable Live2D model could be loaded");
     return false;
@@ -146,6 +156,16 @@ bool bongo_cat_app_initialize(BongoCatApp *app, int argc, char **argv,
         SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION,
             "The update checker could not be initialized");
     bongo_cat_update_start_automatic(app->update);
+    app->voice = app->secondary_pet || app->smoke ||
+        !app->settings.ai.enabled ? NULL : bongo_cat_voice_create(app);
+    if (!app->voice && app->settings.ai.enabled && !app->secondary_pet &&
+        !app->smoke)
+        SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION,
+            "The voice assistant could not be initialized");
+    app->bubble = app->voice ? bongo_cat_bubble_create() : NULL;
+    if (app->voice && !app->bubble)
+        SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION,
+            "The voice bubble could not be initialized");
     if (!app->secondary_pet && !app->tray && app->models.count &&
         !app->session.window.visible) {
         bongo_cat_window_set_visible(app, true);

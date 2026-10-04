@@ -262,14 +262,19 @@ bool bongo_cat_linux_x11_shape(BongoCatPlatform *platform,
     return true;
 }
 
-static void state_message(LinuxX11State *state, const char *name, long action) {
-    Atom state_atom = XInternAtom(state->display, "_NET_WM_STATE", False);
-    Atom target = XInternAtom(state->display, name, False);
-    XEvent event = {0}; event.xclient.type = ClientMessage; event.xclient.window = state->window;
+static void window_message(Display *display, Window window, const char *name,
+    long action) {
+    Atom state_atom = XInternAtom(display, "_NET_WM_STATE", False);
+    Atom target = XInternAtom(display, name, False);
+    XEvent event = {0}; event.xclient.type = ClientMessage; event.xclient.window = window;
     event.xclient.message_type = state_atom; event.xclient.format = 32;
     event.xclient.data.l[0] = action; event.xclient.data.l[1] = (long)target;
-    XSendEvent(state->display, DefaultRootWindow(state->display), False,
-        SubstructureRedirectMask | SubstructureNotifyMask, &event); XFlush(state->display);
+    XSendEvent(display, DefaultRootWindow(display), False,
+        SubstructureRedirectMask | SubstructureNotifyMask, &event); XFlush(display);
+}
+
+static void state_message(LinuxX11State *state, const char *name, long action) {
+    window_message(state->display, state->window, name, action);
 }
 
 void bongo_cat_linux_x11_set_above(BongoCatPlatform *platform, bool enabled) {
@@ -277,6 +282,21 @@ void bongo_cat_linux_x11_set_above(BongoCatPlatform *platform, bool enabled) {
     if (!state || !state->display || !state->window) return;
     /* Some XWayland compositors need an explicit EWMH request after mapping. */
     state_message(state, "_NET_WM_STATE_ABOVE", enabled ? 1 : 0);
+}
+
+void bongo_cat_linux_x11_pin_window_above(SDL_Window *window) {
+    SDL_PropertiesID properties = window ? SDL_GetWindowProperties(window) : 0;
+    Display *display = SDL_GetPointerProperty(properties,
+        SDL_PROP_WINDOW_X11_DISPLAY_POINTER, NULL);
+    Window xwindow = (Window)SDL_GetNumberProperty(properties,
+        SDL_PROP_WINDOW_X11_WINDOW_NUMBER, 0);
+    /* A Wayland surface has no X11 window to talk to. */
+    if (!display || !xwindow) return;
+    /* Only the state requests, never an explicit raise: raising an unfocused
+       window is what makes Mutter flag it as demanding attention. */
+    window_message(display, xwindow, "_NET_WM_STATE_ABOVE", 1);
+    window_message(display, xwindow, "_NET_WM_STATE_DEMANDS_ATTENTION", 0);
+    XFlush(display);
 }
 
 void bongo_cat_linux_x11_configure_capture_window(BongoCatPlatform *platform) {

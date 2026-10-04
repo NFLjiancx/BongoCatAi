@@ -190,8 +190,8 @@ static void about_session_cache(BongoCatPreferences *value) {
     CHECK(feed && pixels);
     s->qr_open = true;
     SDL_GL_MakeCurrent(value->window, value->gl_context);
-    bongo_cat_preferences_page_cache_clear(value, 3, 0);
-    bongo_cat_preferences_page_cache_clear(value, 0, 3);
+    bongo_cat_preferences_page_cache_clear(value, 4, 0);
+    bongo_cat_preferences_page_cache_clear(value, 0, 4);
     CHECK(!s->qr_open);
     CHECK(s->contributors == feed && s->qr_pixels == pixels);
     CHECK(s->contributors_request == contributors_request && s->qr_request == qr_request);

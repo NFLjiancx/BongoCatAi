@@ -182,6 +182,15 @@ void bongo_cat_platform_raise_window(SDL_Window *window) {
     [native makeKeyAndOrderFront:nil];
 }
 
+void bongo_cat_platform_pin_above(SDL_Window *window) {
+    if (!window) return;
+    NSWindow *native = (__bridge NSWindow *)SDL_GetPointerProperty(
+        SDL_GetWindowProperties(window), SDL_PROP_WINDOW_COCOA_WINDOW_POINTER, NULL);
+    /* The window level is native state; SDL leaves it alone once its flag is set. */
+    [native setLevel:NSFloatingWindowLevel];
+    [native orderFront:nil]; /* Order without taking the keyboard. */
+}
+
 bool bongo_cat_platform_set_geometry(BongoCatPlatform *platform,
     int x, int y, int width, int height) {
     if (!platform || !platform->window) return false;

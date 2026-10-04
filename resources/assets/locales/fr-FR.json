@@ -159,6 +159,31 @@
           "alwaysOnTop": "Définit si la fenêtre reste au premier plan."
         }
       },
+      "ai": {
+        "title": "Assistant IA",
+        "labels": {
+          "consent": "Consentement de confidentialité",
+          "assistant": "Assistant vocal",
+          "apiKey": "Clé d’API",
+          "asrModel": "Modèle de reconnaissance vocale",
+          "ttsModel": "Modèle de synthèse vocale",
+          "ttsVoice": "Voix de synthèse",
+          "model": "Modèle de l'assistant"
+        },
+        "hints": {
+          "consent": "Autorise l’envoi des données vocales aux services d’IA pour activer l’assistant.",
+          "assistant": "Active ou désactive l’assistant vocal. Prend effet après un redémarrage.",
+          "restart": "Redémarrez BongoCat pour appliquer les modifications.",
+          "needConsent": "Acceptez d’abord le consentement de confidentialité.",
+          "keySet": "Enregistrée",
+          "keyMissing": "Non définie",
+          "keyHint": "Saisissez une clé d’API DashScope. Laissez le champ vide et appuyez sur Entrée pour la supprimer.",
+          "asrModel": "Nom du modèle de reconnaissance vocale.",
+          "ttsModel": "Nom du modèle de synthèse vocale.",
+          "ttsVoice": "Nom de la voix de synthèse.",
+          "model": "Modèle de conversation de l'assistant."
+        }
+      },
       "about": {
         "title": "À propos",
         "labels": {
@@ -176,6 +201,18 @@
     }
   },
   "components": {
+    "voice": {
+      "stateOff": "",
+      "stateIdle": "Inactif",
+      "stateListening": "Écoute",
+      "stateRecognizing": "Reconnaissance",
+      "stateThinking": "Réflexion",
+      "stateSpeaking": "Parole",
+      "stateError": "Erreur",
+      "cancel": "Annuler",
+      "close": "Fermer",
+      "utterances": "Écoutées"
+    },
     "shortcut": {
       "hints": {
         "pressRecordShortcut": "Appuyez pour enregistrer le raccourci",

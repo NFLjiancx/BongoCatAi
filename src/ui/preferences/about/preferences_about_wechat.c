@@ -42,7 +42,7 @@ void bongo_cat_about_wechat(BongoCatPreferences *value, struct nk_rect anchor) {
 void bongo_cat_about_overlays(BongoCatPreferences *value, struct nk_context *context) {
     bongo_cat_about_refresh(value);
     BongoCatAboutState *s = &value->about;
-    if (!s->qr_open || value->page != 3)
+    if (!s->qr_open || value->page != 4)
         return;
     if (s->qr_texture_dirty) {
         if (s->qr_texture) glDeleteTextures(1, &s->qr_texture);

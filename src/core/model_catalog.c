@@ -59,8 +59,9 @@ static bool add_model(BongoCatModelCatalog *catalog, const char *directory, bool
     if (!bongo_cat_path_find_suffix(directory, ".model3.json", setting, sizeof(setting))) return true;
     BongoCatModelEntry *entry = &catalog->entries[catalog->count++];
     memset(entry, 0, sizeof(*entry));
-    snprintf(entry->id, sizeof(entry->id), "%s", bongo_cat_path_name(directory));
-    snprintf(entry->package_id, sizeof(entry->package_id), "%s", entry->id);
+    const char *name = bongo_cat_path_name(directory);
+    snprintf(entry->id, sizeof(entry->id), "%s", name);
+    snprintf(entry->package_id, sizeof(entry->package_id), "%s", name);
     snprintf(entry->directory, sizeof(entry->directory), "%s", directory);
     snprintf(entry->adapter_directory, sizeof(entry->adapter_directory), "%s", directory);
     snprintf(entry->storage_directory, sizeof(entry->storage_directory), "%s", directory);

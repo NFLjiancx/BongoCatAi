@@ -1,5 +1,6 @@
 #include "runtime.h"
 #include "bongo_cat/audio.h"
+#include "bongo_cat/i18n.h"
 #include "bongo_cat/log.h"
 #include "bongo_cat/model_memory.h"
 #include "bongo_cat/resource_trace.h"
@@ -12,6 +13,8 @@
 
 static void handle_event(BongoCatApp *app, const SDL_Event *event) {
     if (bongo_cat_update_event(app->update, event)) return;
+    if (bongo_cat_voice_event(app->voice, event)) return;
+    if (bongo_cat_bubble_event(app->bubble, event)) return;
     if (bongo_cat_model_refresh_event(app, event)) return;
     if (bongo_cat_preferences_event(app->preferences, event)) return;
     if (!bongo_cat_window_event(app, event)) app->running = false;
@@ -190,6 +193,37 @@ static bool take_update_shutdown(BongoCatApp *app) {
     return true;
 }
 
+static void update_voice_bubble(BongoCatApp *app, uint64_t now) {
+    if (!app->voice || !app->bubble) return;
+    BongoCatVoiceStatus status;
+    bongo_cat_voice_status(app->voice, &status);
+    BongoCatBubbleLabels labels;
+    SDL_zero(labels);
+    labels.state_names[BONGO_CAT_VOICE_STATE_OFF] = bongo_cat_i18n_get(
+        app->i18n, "components.voice.stateOff", "");
+    labels.state_names[BONGO_CAT_VOICE_STATE_IDLE] = bongo_cat_i18n_get(
+        app->i18n, "components.voice.stateIdle", "Idle");
+    labels.state_names[BONGO_CAT_VOICE_STATE_LISTENING] = bongo_cat_i18n_get(
+        app->i18n, "components.voice.stateListening", "Listening");
+    labels.state_names[BONGO_CAT_VOICE_STATE_RECOGNIZING] = bongo_cat_i18n_get(
+        app->i18n, "components.voice.stateRecognizing", "Recognizing");
+    labels.state_names[BONGO_CAT_VOICE_STATE_THINKING] = bongo_cat_i18n_get(
+        app->i18n, "components.voice.stateThinking", "Thinking");
+    labels.state_names[BONGO_CAT_VOICE_STATE_SPEAKING] = bongo_cat_i18n_get(
+        app->i18n, "components.voice.stateSpeaking", "Speaking");
+    labels.state_names[BONGO_CAT_VOICE_STATE_ERROR_HOLD] = bongo_cat_i18n_get(
+        app->i18n, "components.voice.stateError", "Error");
+    labels.cancel = bongo_cat_i18n_get(app->i18n, "components.voice.cancel",
+        "Cancel");
+    labels.close = bongo_cat_i18n_get(app->i18n, "components.voice.close",
+        "Close");
+    labels.utterances = bongo_cat_i18n_get(app->i18n,
+        "components.voice.utterances", "Heard");
+    bongo_cat_bubble_update(app->bubble, app->window, &status, &labels, now);
+    if (bongo_cat_bubble_take_cancel_request(app->bubble))
+        bongo_cat_voice_cancel(app->voice);
+}
+
 void bongo_cat_app_loop(BongoCatApp *app) {
     while (app->running) {
         bongo_cat_diagnostics_phase("loop-prepare");
@@ -224,6 +258,12 @@ void bongo_cat_app_loop(BongoCatApp *app) {
         bongo_cat_diagnostics_phase("snapshot-and-multi-pet");
         bongo_cat_window_snapshot_update(app, now);
         bongo_cat_multi_pet_update(app, now);
+        if (app->voice_reload_requested) {
+            app->voice_reload_requested = false;
+            bongo_cat_voice_reload(app->voice);
+        }
+        bongo_cat_voice_update(app->voice, now);
+        update_voice_bubble(app, now);
         bongo_cat_memory_policy_poll();
         bongo_cat_model_memory_poll();
         bongo_cat_diagnostics_phase("random-behavior");

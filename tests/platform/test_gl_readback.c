@@ -60,7 +60,7 @@ static GLenum error(void) { return read_error; }
 #define glReadBuffer read_buffer
 #define glPixelStorei store
 #define glReadPixels fake_read
-#define glGetError error
+#define glGetError() error()
 #include "../../src/platform/common/gl_readback.c"
 
 int main(void) {

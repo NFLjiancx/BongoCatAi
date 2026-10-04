@@ -118,6 +118,20 @@ static bool read_app(yyjson_val *object, BongoCatApplicationPreferences *value,
     return true;
 }
 
+static bool read_ai(yyjson_val *object, BongoCatAiPreferences *value,
+    BongoCatError *error) {
+    return read_bool(object, "enabled", &value->enabled, error) &&
+        read_bool(object, "privacyConsent", &value->privacy_consent, error) &&
+        read_text(object, "asrModel", value->asr_model,
+            sizeof(value->asr_model), error) &&
+        read_text(object, "ttsModel", value->tts_model,
+            sizeof(value->tts_model), error) &&
+        read_text(object, "ttsVoice", value->tts_voice,
+            sizeof(value->tts_voice), error) &&
+        read_text(object, "assistantModel", value->assistant_model,
+            sizeof(value->assistant_model), error);
+}
+
 static bool read_shortcuts(yyjson_val *object,
     BongoCatShortcutPreferences *value, BongoCatError *error) {
     return read_text(object, "toggleVisibility", value->toggle_pet_visibility,
@@ -261,6 +275,7 @@ BongoCatResult bongo_cat_settings_load(const char *path,
     yyjson_val *model = NULL;
     yyjson_val *window = NULL;
     yyjson_val *application = NULL;
+    yyjson_val *ai = NULL;
     yyjson_val *shortcuts = NULL;
     yyjson_val *behaviors = NULL;
     yyjson_val *models = NULL;
@@ -269,6 +284,7 @@ BongoCatResult bongo_cat_settings_load(const char *path,
     bool valid = read_object(root, "rendering", &model, error) &&
         read_object(root, "window", &window, error) &&
         read_object(root, "application", &application, error) &&
+        read_object(root, "ai", &ai, error) &&
         read_object(root, "shortcuts", &shortcuts, error) &&
         read_array(root, "behaviorOverrides", &behaviors, error) &&
         read_array(root, "modelOverrides", &models, error) &&
@@ -277,6 +293,7 @@ BongoCatResult bongo_cat_settings_load(const char *path,
         (!model || read_model(model, &loaded.model, error)) &&
         (!window || read_window(window, &loaded.window, error)) &&
         (!application || read_app(application, &loaded.app, error)) &&
+        (!ai || read_ai(ai, &loaded.ai, error)) &&
         (!shortcuts || read_shortcuts(shortcuts, &loaded.shortcuts, error)) &&
         read_behaviors(behaviors, &loaded, error) &&
         read_model_labels(models, &loaded, error) &&

@@ -16,12 +16,16 @@ static uint64_t hash_bytes(uint64_t hash, const void *data, size_t size) {
     return hash;
 }
 
+/* Dirty detection is hash-based, so every member that
+   bongo_cat_settings_save persists has to be hashed here; a missing field
+   silently drops the whole section from settings.json. */
 static uint64_t settings_hash(const BongoCatSettings *settings) {
     uint64_t hash = 1469598103934665603ull;
 #define HASH_FIELD(field) hash = hash_bytes(hash, &(field), sizeof(field))
     HASH_FIELD(settings->model);
     HASH_FIELD(settings->window);
     HASH_FIELD(settings->app);
+    HASH_FIELD(settings->ai);
     HASH_FIELD(settings->shortcuts);
     HASH_FIELD(settings->behavior_shortcut_count);
     size_t behavior_count = settings->behavior_shortcut_count;

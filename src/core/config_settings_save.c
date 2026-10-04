@@ -79,6 +79,22 @@ static bool write_app(yyjson_mut_doc *doc, yyjson_mut_val *object,
             bongo_cat_language_name(value->language));
 }
 
+static bool write_ai(yyjson_mut_doc *doc, yyjson_mut_val *object,
+    const BongoCatAiPreferences *value) {
+    return object &&
+        yyjson_mut_obj_add_bool(doc, object, "enabled", value->enabled) &&
+        yyjson_mut_obj_add_bool(doc, object, "privacyConsent",
+            value->privacy_consent) &&
+        yyjson_mut_obj_add_strcpy(doc, object, "asrModel",
+            value->asr_model) &&
+        yyjson_mut_obj_add_strcpy(doc, object, "ttsModel",
+            value->tts_model) &&
+        yyjson_mut_obj_add_strcpy(doc, object, "ttsVoice",
+            value->tts_voice) &&
+        yyjson_mut_obj_add_strcpy(doc, object, "assistantModel",
+            value->assistant_model);
+}
+
 static bool write_shortcuts(yyjson_mut_doc *doc, yyjson_mut_val *object,
     const BongoCatShortcutPreferences *value) {
     return object &&
@@ -224,6 +240,8 @@ BongoCatResult bongo_cat_settings_save(const char *path,
             &canonical.window) &&
         write_app(doc, yyjson_mut_obj_add_obj(doc, root, "application"),
             &canonical.app) &&
+        write_ai(doc, yyjson_mut_obj_add_obj(doc, root, "ai"),
+            &canonical.ai) &&
         write_shortcuts(doc, yyjson_mut_obj_add_obj(doc, root, "shortcuts"),
             &canonical.shortcuts) &&
         write_behaviors(doc, root, &canonical) &&

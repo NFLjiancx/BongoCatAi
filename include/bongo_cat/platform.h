@@ -120,6 +120,10 @@ void bongo_cat_platform_relative_pointer_reset(BongoCatPlatform *platform);
 void bongo_cat_platform_relative_pointer_release(BongoCatPlatform *platform);
 void bongo_cat_platform_set_always_on_top(BongoCatPlatform *platform, bool enabled);
 void bongo_cat_platform_raise_window(SDL_Window *window);
+/* Re-asserts the above-stack state for a window the platform object does not
+   own, such as the voice bubble. SDL only pushes the state when its flag
+   flips, and a compositor may drop it when the window is unmapped. */
+void bongo_cat_platform_pin_above(SDL_Window *window);
 /* Configure platform-native chrome for the preferences window when available. */
 void bongo_cat_platform_configure_preferences_window(SDL_Window *window);
 bool bongo_cat_platform_open_directory(const char *path);

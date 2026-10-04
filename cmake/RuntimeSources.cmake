@@ -8,7 +8,9 @@ set(BONGO_CAT_RUNTIME_INTERNAL_INCLUDE_DIRS
   "${CMAKE_CURRENT_SOURCE_DIR}/src/runtime/model/import/nearby"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/runtime/shell"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/runtime/update"
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/runtime/voice"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/ui/backend"
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/ui/bubble"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/ui/preferences"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/ui/rendering"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/ui/theme")
@@ -64,6 +66,24 @@ set(BONGO_CAT_RUNTIME_UPDATE_SOURCES
   src/runtime/update/update_http.c
   src/runtime/update/update_http_unix.c
   src/runtime/update/update_service.c)
+
+set(BONGO_CAT_RUNTIME_VOICE_SOURCES
+  src/runtime/voice/voice_service.c
+  src/runtime/voice/voice_workers.c
+  src/runtime/voice/voice_capture.c
+  src/runtime/voice/voice_barge.c
+  src/runtime/voice/voice_turn.c
+  src/runtime/voice/voice_ring.c
+  src/runtime/voice/voice_vad.c
+  src/runtime/voice/dashscope_json.c
+  src/runtime/voice/asr_worker.c
+  src/runtime/voice/assistant_http.c
+  src/runtime/voice/assistant_runner.c
+  src/runtime/voice/assistant_tools.c
+  src/runtime/voice/tts_envelope.c
+  src/runtime/voice/tts_worker.c
+  src/runtime/voice/ws_client_lws.c
+  src/runtime/voice/ws_stub.c)
 
 set(BONGO_CAT_RUNTIME_DIAGNOSTIC_SOURCES
   src/runtime/diagnostics/resource_trace.c
@@ -207,6 +227,9 @@ set(BONGO_CAT_UI_BACKEND_SOURCES
   src/ui/backend/ui_tooltip.c)
 
 set(BONGO_CAT_UI_RENDERING_SOURCES
+  src/ui/bubble/bubble_window.c
+  src/ui/bubble/bubble_paint.c
+  src/ui/bubble/bubble_fonts.c
   src/ui/dial/dial_window.c
   src/ui/dial/dial_input.c
   src/ui/dial/dial_items.c
@@ -285,6 +308,7 @@ set(BONGO_CAT_UI_PREFERENCES_SOURCES
   src/ui/preferences/preferences_model_rename.c
   src/ui/preferences/preferences_notice.c
   src/ui/preferences/preferences_overlay.c
+  src/ui/preferences/preferences_page_ai.c
   src/ui/preferences/preferences_page_dispatch.c
   src/ui/preferences/preferences_pages.c
   src/ui/preferences/preferences_present.c
@@ -313,6 +337,7 @@ set(BONGO_CAT_RUNTIME_SOURCES
   ${BONGO_CAT_RENDER_SOURCES}
   ${BONGO_CAT_RUNTIME_LIFECYCLE_SOURCES}
   ${BONGO_CAT_RUNTIME_UPDATE_SOURCES}
+  ${BONGO_CAT_RUNTIME_VOICE_SOURCES}
   ${BONGO_CAT_RUNTIME_DIAGNOSTIC_SOURCES}
   ${BONGO_CAT_RUNTIME_INPUT_SOURCES}
   ${BONGO_CAT_RUNTIME_MODEL_SOURCES}

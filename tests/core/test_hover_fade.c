@@ -41,6 +41,11 @@ void bongo_cat_window_snapshot_update(BongoCatApp *app, uint64_t now) {
 void bongo_cat_app_drain_input(BongoCatApp *app, bool shortcuts) {
     (void)app; (void)shortcuts;
 }
+void bongo_cat_app_refresh_texture_resolution(BongoCatApp *app,
+    bool allow_start) {
+    (void)app; (void)allow_start;
+}
+void bongo_cat_resource_trace_poll(void) {}
 bool bongo_cat_app_step_live2d(BongoCatApp *app, float elapsed) {
     (void)app; (void)elapsed;
     return true;

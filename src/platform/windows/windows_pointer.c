@@ -61,6 +61,18 @@ void bongo_cat_platform_raise_window(SDL_Window *window) {
         bongo_cat_windows_capture_repair_transparency(handle);
 }
 
+void bongo_cat_platform_pin_above(SDL_Window *window) {
+    if (!window) return;
+    HWND handle = (HWND)SDL_GetPointerProperty(SDL_GetWindowProperties(window),
+        SDL_PROP_WINDOW_WIN32_HWND_POINTER, NULL);
+    /* The topmost style has to be asked for natively: SDL skips the request
+       once its own always-on-top flag is already set. */
+    if (handle)
+        SetWindowPos(handle, HWND_TOPMOST, 0, 0, 0, 0,
+            SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+    else SDL_RaiseWindow(window);
+}
+
 bool bongo_cat_platform_set_geometry(BongoCatPlatform *platform,
     int x, int y, int width, int height) {
     if (!platform || !platform->window) return false;

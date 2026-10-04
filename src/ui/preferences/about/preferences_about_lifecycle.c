@@ -33,7 +33,7 @@ void bongo_cat_about_refresh(BongoCatPreferences *value) {
             !SDL_GetAtomicInt(&job->cancel);
         int kind = job->kind;
         if (value->visible && job->status == 200 && !SDL_GetAtomicInt(&job->cancel)) {
-            if (value->page == 3) value->render_dirty = true;
+            if (value->page == 4) value->render_dirty = true;
             if (job->kind == BONGO_ABOUT_WECHAT) {
                 if (!s->qr_pixels || !job->qr_pixels ||
                     memcmp(s->qr_pixels, job->qr_pixels, 240 * 240 * 4)) {
@@ -73,7 +73,7 @@ void bongo_cat_about_refresh(BongoCatPreferences *value) {
 bool bongo_cat_about_event(BongoCatPreferences *value, const SDL_Event *event) {
     if (value->about.event_type && event->type == value->about.event_type) {
         bongo_cat_about_refresh(value);
-        if (value->visible && value->page == 3) value->render_dirty = true;
+        if (value->visible && value->page == 4) value->render_dirty = true;
         return true;
     }
     return false;

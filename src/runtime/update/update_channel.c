@@ -123,7 +123,7 @@ void bongo_cat_update_show_completion(BongoCatUpdateService *service) {
         char *end = NULL;
         unsigned long status = strncmp(snapshot.error, prefix,
             sizeof(prefix) - 1) == 0 ? strtoul(value, &end, 10) : 0;
-        if (status && end && !*end) {
+        if (status && status <= 99999 && end && !*end) {
             snprintf(status_text, sizeof(status_text), "%lu", status);
             snprintf(detail, sizeof(detail), tr(service,
                 "native.support.updateHttpFailed",

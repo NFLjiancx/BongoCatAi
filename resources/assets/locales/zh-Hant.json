@@ -159,6 +159,31 @@
           "alwaysOnTop": "切換貓咪視窗是否置頂。"
         }
       },
+      "ai": {
+        "title": "AI 助手",
+        "labels": {
+          "consent": "隱私授權",
+          "assistant": "語音助手",
+          "apiKey": "API 金鑰",
+          "asrModel": "語音辨識模型",
+          "ttsModel": "語音合成模型",
+          "ttsVoice": "語音合成音色",
+          "model": "助手模型"
+        },
+        "hints": {
+          "consent": "開啟後語音資料將傳送至 AI 服務。",
+          "assistant": "開啟或關閉語音助手，重新啟動後生效。",
+          "restart": "重新啟動 BongoCat 後生效。",
+          "needConsent": "請先同意隱私授權。",
+          "keySet": "已設定",
+          "keyMissing": "未設定",
+          "keyHint": "輸入 DashScope API 金鑰；留空並按 Enter 可移除。",
+          "asrModel": "語音辨識模型名稱。",
+          "ttsModel": "語音合成模型名稱。",
+          "ttsVoice": "語音合成音色名稱。",
+          "model": "助手呼叫的對話模型。"
+        }
+      },
       "about": {
         "title": "關於",
         "labels": {
@@ -176,6 +201,18 @@
     }
   },
   "components": {
+    "voice": {
+      "stateOff": "",
+      "stateIdle": "待命",
+      "stateListening": "聆聽中",
+      "stateRecognizing": "辨識中",
+      "stateThinking": "思考中",
+      "stateSpeaking": "播報中",
+      "stateError": "發生錯誤",
+      "cancel": "取消",
+      "close": "關閉",
+      "utterances": "已聽到"
+    },
     "shortcut": {
       "hints": {
         "pressRecordShortcut": "按下錄製快速鍵",

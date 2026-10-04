@@ -47,6 +47,12 @@ void bongo_cat_preferences_behavior_row_draw(BongoCatPreferences *value,
     float opacity, bool enabled);
 void bongo_cat_preferences_page_shortcuts(BongoCatPreferences *value,
     struct nk_context *context);
+void bongo_cat_preferences_page_ai(BongoCatPreferences *value,
+    struct nk_context *context);
+bool bongo_cat_preferences_ai_edit_event(BongoCatPreferences *value,
+    const SDL_Event *event);
+void bongo_cat_preferences_ai_edit_finish(BongoCatPreferences *value,
+    bool save);
 void bongo_cat_preferences_page_about(BongoCatPreferences *value,
     struct nk_context *context);
 bool bongo_cat_preferences_shortcut_active(const BongoCatPreferences *value,

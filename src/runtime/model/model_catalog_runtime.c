@@ -111,6 +111,32 @@ BongoCatResult bongo_cat_model_catalog_scan(BongoCatApp *app, bool cleanup,
     return app->models.count ? BONGO_CAT_OK : result;
 }
 
+bool bongo_cat_model_catalog_add_bundled(BongoCatApp *app, bool replace) {
+    char root[BONGO_CAT_PATH_CAP];
+    if (!app || !bongo_cat_path_join(root, sizeof(root), app->asset_root,
+        "models")) return false;
+    BongoCatModelCatalog *bundled = calloc(1, sizeof(*bundled));
+    if (!bundled) return false;
+    BongoCatError error = {0};
+    BongoCatResult result = bongo_cat_models_scan(bundled, root, true, &error);
+    for (size_t i = 0; i < bundled->count; ++i) {
+        const BongoCatModelEntry *entry = &bundled->entries[i];
+        size_t index = 0;
+        while (index < app->models.count &&
+            strcmp(app->models.entries[index].id, entry->id)) index++;
+        if (index < app->models.count && !replace) continue;
+        if (index >= BONGO_CAT_MODEL_CAP) continue;
+        app->models.entries[index] = *entry;
+        if (index == app->models.count) app->models.count++;
+    }
+    bool available = bundled->count && result == BONGO_CAT_OK;
+    if (!available) SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION,
+        "Bundled model scan failed: path=%s error=%s", root,
+        error.message[0] ? error.message : "no bundled models found");
+    free(bundled);
+    return available;
+}
+
 void bongo_cat_app_rescan_models(BongoCatApp *app) {
     if (!app) return;
     bongo_cat_model_refresh_invalidate(app);

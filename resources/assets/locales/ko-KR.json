@@ -159,6 +159,31 @@
           "alwaysOnTop": "펫 창을 항상 위에 둘지 전환합니다."
         }
       },
+      "ai": {
+        "title": "AI 어시스턴트",
+        "labels": {
+          "consent": "개인정보 동의",
+          "assistant": "음성 어시스턴트",
+          "apiKey": "API 키",
+          "asrModel": "음성 인식 모델",
+          "ttsModel": "음성 합성 모델",
+          "ttsVoice": "음성 합성 보이스",
+          "model": "어시스턴트 모델"
+        },
+        "hints": {
+          "consent": "어시스턴트를 사용하려면 음성 데이터를 AI 서비스로 전송하는 것을 허용합니다.",
+          "assistant": "음성 어시스턴트를 켜거나 끕니다. 재시작 후 적용됩니다.",
+          "restart": "적용하려면 BongoCat을 다시 시작하세요.",
+          "needConsent": "먼저 개인정보 동의를 허용하세요.",
+          "keySet": "저장됨",
+          "keyMissing": "설정되지 않음",
+          "keyHint": "DashScope API 키를 입력하세요. 비운 뒤 Enter를 누르면 삭제됩니다.",
+          "asrModel": "음성 인식 모델 이름입니다.",
+          "ttsModel": "음성 합성 모델 이름입니다.",
+          "ttsVoice": "음성 합성 보이스 이름입니다.",
+          "model": "어시스턴트가 사용하는 채팅 모델입니다."
+        }
+      },
       "about": {
         "title": "정보",
         "labels": {
@@ -176,6 +201,18 @@
     }
   },
   "components": {
+    "voice": {
+      "stateOff": "",
+      "stateIdle": "대기",
+      "stateListening": "듣는 중",
+      "stateRecognizing": "인식 중",
+      "stateThinking": "생각 중",
+      "stateSpeaking": "읽는 중",
+      "stateError": "오류",
+      "cancel": "취소",
+      "close": "닫기",
+      "utterances": "들은 문장"
+    },
     "shortcut": {
       "hints": {
         "pressRecordShortcut": "키를 눌러 단축키 기록",
