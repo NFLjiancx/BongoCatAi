@@ -120,7 +120,23 @@ bool bongo_cat_voice_event(BongoCatVoice *voice, const SDL_Event *event) {
             BONGO_CAT_ASR_NOTIFY_BEGIN);
     } else if (code == BONGO_CAT_VOICE_CAPTURE_ONSET &&
         state == BONGO_CAT_VOICE_STATE_SPEAKING) {
+        /* Energy alone is not an interruption. Doors, keyboards and this
+           machine's own speakers all clear the gate; only the recognizer
+           saying it heard a word may cut the answer short. */
+        bongo_cat_voice_barge_arm(voice);
+    } else if ((code == BONGO_CAT_VOICE_EV_ASR_PARTIAL ||
+        code == BONGO_CAT_VOICE_EV_ASR_FINAL) &&
+        state == BONGO_CAT_VOICE_STATE_SPEAKING &&
+        bongo_cat_voice_barge_armed(voice) &&
+        bongo_cat_voice_barge_confirm(voice)) {
         bongo_cat_voice_barge_in(voice);
+        if (code == BONGO_CAT_VOICE_EV_ASR_FINAL) {
+            /* The word heard was already a whole sentence: answer it now
+               rather than wait for an offset that may never come. */
+            bongo_cat_voice_turn_close(voice, "interrupt");
+            if (voice->assistant) bongo_cat_voice_dispatch(voice);
+            else bongo_cat_voice_set_state(voice, BONGO_CAT_VOICE_STATE_IDLE);
+        }
     } else if (code == BONGO_CAT_VOICE_EV_ASR_PARTIAL &&
         state == BONGO_CAT_VOICE_STATE_LISTENING) {
         /* Words the recognizer actually heard are what keeps the listening
@@ -212,7 +228,8 @@ bool bongo_cat_voice_event(BongoCatVoice *voice, const SDL_Event *event) {
         voice->synthesizing = false;
         voice->thinking_until_ns = 0;
         SDL_UnlockMutex(voice->mutex);
-        if (was_synthesizing) bongo_cat_voice_set_state(voice, BONGO_CAT_VOICE_STATE_IDLE);
+        if (was_synthesizing)
+            hold_error(voice, "voice could not synthesize the answer");
     } else if (code == BONGO_CAT_VOICE_EV_ASSISTANT_ERROR &&
         state == BONGO_CAT_VOICE_STATE_THINKING) {
         char message[BONGO_CAT_VOICE_TEXT_CAP];
@@ -254,6 +271,8 @@ static void voice_update_speaking(BongoCatVoice *voice, Uint64 now) {
     /* Fast attack, slower release keeps the mouth natural. */
     voice->mouth_value = target > voice->mouth_value ? target
         : voice->mouth_value * 0.80f;
+    bool armed = voice->interrupt_until_ns != 0;
+    bool interrupt_expired = armed && now >= voice->interrupt_until_ns;
     float value = done ? 0.0f : voice->mouth_value;
     if (done) {
         voice->speaking_until_ns = 0;
@@ -267,12 +286,26 @@ static void voice_update_speaking(BongoCatVoice *voice, Uint64 now) {
         value);
     if (done) {
         bongo_cat_voice_echo_reset(voice);
+        if (armed) {
+            /* She was being cut off as the answer ran out: those words are
+               already with the recognizer, so go on listening for them rather
+               than closing the turn on top of them. */
+            bongo_cat_voice_barge_in(voice);
+            return;
+        }
         bongo_cat_voice_ring_reset(&voice->ring);
         bongo_cat_voice_gate_release(voice);
         bongo_cat_voice_set_state(voice, BONGO_CAT_VOICE_STATE_IDLE);
         return;
     }
-    bongo_cat_voice_echo_update(voice, now, target);
+    if (interrupt_expired) {
+        bongo_cat_voice_barge_disarm(voice);
+        return;
+    }
+    /* A candidate interruption in the room is not the echo of this answer:
+       feeding it to the calibration would raise the floor until the next
+       real interrupt could not clear it. */
+    if (!armed) bongo_cat_voice_echo_update(voice, now, target);
 }
 
 void bongo_cat_voice_update(BongoCatVoice *voice, Uint64 now) {

@@ -29,13 +29,13 @@ struct BongoCatTts {
     int sample_rate;
     char api_key[TTS_API_KEY_CAP];
     SDL_Thread *thread;
-    SDL_Mutex *text_mutex;
+    /* Guards the queued request: text, epoch and want_speak change together. */
+    SDL_Mutex *job_mutex;
     char pending_text[TTS_TEXT_CAP];
     /* Voice turn the queued text answers; posted back with READY/ERROR. */
     SDL_AtomicInt epoch;
     SDL_AtomicInt want_speak;
     SDL_AtomicInt want_cancel;
-    SDL_AtomicInt busy;
     SDL_AtomicInt quit;
     SDL_AtomicInt running;
 };
@@ -165,7 +165,8 @@ static void clamp_text(char *text, size_t capacity, size_t max_codepoints) {
     text[keep] = '\0';
 }
 
-static bool job_publish(BongoCatTts *tts, TtsJob *job) {
+static bool job_publish(BongoCatTts *tts, TtsJob *job, unsigned epoch,
+    const char *text) {
     BongoCatVoice *voice = tts->voice;
     size_t count = bongo_cat_tts_envelope_count(job->pcm_size / 2u,
         tts->sample_rate);
@@ -203,17 +204,15 @@ static bool job_publish(BongoCatTts *tts, TtsJob *job) {
     snprintf(voice->tts_path, sizeof(voice->tts_path), "%s", path);
     SDL_UnlockMutex(voice->mutex);
     SDL_LogInfo(BONGO_CAT_LOG_LIFECYCLE,
-        "TTS ready: %zu bytes of audio", job->pcm_size);
-    bongo_cat_voice_post_turn(voice, BONGO_CAT_VOICE_EV_TTS_READY,
-        (unsigned)SDL_GetAtomicInt(&tts->epoch));
+        "TTS ready: %zu bytes of audio: %s", job->pcm_size, text);
+    bongo_cat_voice_post_turn(voice, BONGO_CAT_VOICE_EV_TTS_READY, epoch);
     return true;
 }
 
-static void run_task(BongoCatTts *tts) {
+static void run_task(BongoCatTts *tts, const char *request_text,
+    unsigned epoch) {
     char text[TTS_TEXT_CAP];
-    SDL_LockMutex(tts->text_mutex);
-    snprintf(text, sizeof(text), "%s", tts->pending_text);
-    SDL_UnlockMutex(tts->text_mutex);
+    SDL_strlcpy(text, request_text, sizeof(text));
     clamp_text(text, sizeof(text), TTS_TEXT_MAX_CODEPOINTS);
     TtsJob job = {0};
     job.tts = tts;
@@ -227,6 +226,10 @@ static void run_task(BongoCatTts *tts) {
     if (!client) {
         SDL_LogWarn(BONGO_CAT_LOG_LIFECYCLE, "TTS connect failed: %s",
             bongo_cat_ws_last_error(NULL));
+        /* Without this event the service waits out its synthesis watchdog in
+           silence, which reads as the pet refusing to answer. */
+        bongo_cat_voice_post_turn(tts->voice, BONGO_CAT_VOICE_EV_TTS_ERROR,
+            epoch);
         return;
     }
     BongoCatDashscopeTtsConfig config = {tts->model, tts->voice_name, "pcm",
@@ -290,14 +293,14 @@ static void run_task(BongoCatTts *tts) {
     bongo_cat_ws_close(client);
     if (!SDL_GetAtomicInt(&tts->want_cancel) &&
         !SDL_GetAtomicInt(&tts->quit)) {
-        bool ok = job.finished && job.pcm_size && job_publish(tts, &job);
+        bool ok = job.finished && job.pcm_size
+            && job_publish(tts, &job, epoch, text);
         if (!ok) {
             if (job.finished && !job.pcm_size)
                 SDL_LogWarn(BONGO_CAT_LOG_LIFECYCLE,
                     "TTS returned no audio bytes");
             bongo_cat_voice_post_turn(tts->voice,
-                BONGO_CAT_VOICE_EV_TTS_ERROR,
-                (unsigned)SDL_GetAtomicInt(&tts->epoch));
+                BONGO_CAT_VOICE_EV_TTS_ERROR, epoch);
         }
     }
     free(job.pcm);
@@ -306,15 +309,25 @@ static void run_task(BongoCatTts *tts) {
 static int worker_run(void *userdata) {
     BongoCatTts *tts = userdata;
     while (!SDL_GetAtomicInt(&tts->quit)) {
-        if (!SDL_GetAtomicInt(&tts->want_speak)) {
-            SDL_Delay(50);
+        char text[TTS_TEXT_CAP];
+        unsigned epoch = 0;
+        SDL_LockMutex(tts->job_mutex);
+        bool ready = SDL_GetAtomicInt(&tts->want_speak) != 0;
+        if (ready) {
+            SDL_snprintf(text, sizeof(text), "%s", tts->pending_text);
+            epoch = (unsigned)SDL_GetAtomicInt(&tts->epoch);
+            SDL_SetAtomicInt(&tts->want_speak, 0);
+            /* A cancel belongs to the request it interrupted. Kept armed past
+               an idle worker it would abort the next answer before a single
+               frame was sent, and that answer would never be reported back. */
+            SDL_SetAtomicInt(&tts->want_cancel, 0);
+        }
+        SDL_UnlockMutex(tts->job_mutex);
+        if (!ready) {
+            SDL_Delay(20);
             continue;
         }
-        SDL_SetAtomicInt(&tts->busy, 1);
-        run_task(tts);
-        SDL_SetAtomicInt(&tts->want_speak, 0);
-        SDL_SetAtomicInt(&tts->want_cancel, 0);
-        SDL_SetAtomicInt(&tts->busy, 0);
+        run_task(tts, text, epoch);
     }
     return 0;
 }
@@ -331,8 +344,8 @@ BongoCatTts *bongo_cat_tts_create(BongoCatVoice *voice,
     SDL_strlcpy(tts->model, config->model, sizeof(tts->model));
     SDL_strlcpy(tts->voice_name, config->voice, sizeof(tts->voice_name));
     tts->sample_rate = config->sample_rate;
-    tts->text_mutex = SDL_CreateMutex();
-    if (!tts->text_mutex) {
+    tts->job_mutex = SDL_CreateMutex();
+    if (!tts->job_mutex) {
         free(tts);
         return NULL;
     }
@@ -356,13 +369,14 @@ bool bongo_cat_tts_start(BongoCatTts *tts, const char *api_key) {
 bool bongo_cat_tts_speak(BongoCatTts *tts, const char *text,
     unsigned epoch) {
     if (!tts || !text || !text[0]) return false;
-    if (SDL_GetAtomicInt(&tts->busy) || SDL_GetAtomicInt(&tts->want_speak))
-        return false;
-    SDL_LockMutex(tts->text_mutex);
+    /* The voice only ever wants the last word, so a queued or in-flight answer
+       is replaced rather than refused: refusing left it silent with no event
+       for the service to report. */
+    SDL_LockMutex(tts->job_mutex);
     SDL_strlcpy(tts->pending_text, text, sizeof(tts->pending_text));
-    SDL_UnlockMutex(tts->text_mutex);
     SDL_SetAtomicInt(&tts->epoch, (int)epoch);
     SDL_SetAtomicInt(&tts->want_speak, 1);
+    SDL_UnlockMutex(tts->job_mutex);
     return true;
 }
 
@@ -383,7 +397,6 @@ void bongo_cat_tts_stop(BongoCatTts *tts) {
     SDL_WaitThread(tts->thread, NULL);
     tts->thread = NULL;
     SDL_SetAtomicInt(&tts->running, 0);
-    SDL_SetAtomicInt(&tts->busy, 0);
     SDL_SetAtomicInt(&tts->want_speak, 0);
     tts->api_key[0] = '\0';
 }
@@ -391,6 +404,6 @@ void bongo_cat_tts_stop(BongoCatTts *tts) {
 void bongo_cat_tts_destroy(BongoCatTts *tts) {
     if (!tts) return;
     bongo_cat_tts_stop(tts);
-    SDL_DestroyMutex(tts->text_mutex);
+    SDL_DestroyMutex(tts->job_mutex);
     free(tts);
 }

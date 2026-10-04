@@ -5,10 +5,49 @@
 
 #define VOICE_SAMPLE_RATE 16000u
 #define VOICE_LOOKBACK_SAMPLES (VOICE_SAMPLE_RATE * BONGO_CAT_VAD_LOOKBACK_MS / 1000u)
+/* Below this there is nothing but the machine: fan, handling noise and mains
+   hum. Speech fundamental for the voice she answers with starts above it. */
+#define VOICE_HPF_CUTOFF_HZ 180.0f
+
+static void voice_hpf_init(BongoCatVoice *voice) {
+    float rate = (float)VOICE_SAMPLE_RATE;
+    float w0 = 6.2831853f * VOICE_HPF_CUTOFF_HZ / rate;
+    float cos_w0 = SDL_cosf(w0), sin_w0 = SDL_sinf(w0);
+    /* Q = 0.7071: a Butterworth response, no bump at the cutoff. */
+    float alpha = sin_w0 / 1.4142135f;
+    float a0 = 1.0f + alpha;
+    voice->hpf_b0 = (1.0f + cos_w0) / 2.0f / a0;
+    voice->hpf_b1 = -(1.0f + cos_w0) / a0;
+    voice->hpf_b2 = (1.0f + cos_w0) / 2.0f / a0;
+    voice->hpf_a1 = -2.0f * cos_w0 / a0;
+    voice->hpf_a2 = (1.0f - alpha) / a0;
+    voice->hpf_x1 = voice->hpf_x2 = voice->hpf_y1 = voice->hpf_y2 = 0.0f;
+}
+
+/* In place, across the whole frame, with the state carried into the next one
+   so a filter break cannot ring the audio at every 20 ms boundary. */
+static void voice_hpf_apply(BongoCatVoice *voice, int16_t *samples,
+    unsigned count) {
+    float x1 = voice->hpf_x1, x2 = voice->hpf_x2;
+    float y1 = voice->hpf_y1, y2 = voice->hpf_y2;
+    for (unsigned i = 0; i < count; ++i) {
+        float x = (float)samples[i] / 32768.0f;
+        float y = voice->hpf_b0 * x + voice->hpf_b1 * x1 + voice->hpf_b2 * x2
+            - voice->hpf_a1 * y1 - voice->hpf_a2 * y2;
+        x2 = x1; x1 = x; y2 = y1; y1 = y;
+        float out = y * 32768.0f;
+        if (out > 32767.0f) out = 32767.0f;
+        else if (out < -32768.0f) out = -32768.0f;
+        samples[i] = (int16_t)out;
+    }
+    voice->hpf_x1 = x1; voice->hpf_x2 = x2;
+    voice->hpf_y1 = y1; voice->hpf_y2 = y2;
+}
 
 /* Runs on the miniaudio capture thread. Never touches the mutex; ring and
    VAD fields are producer-only here, the consumer is the ASR worker. */
-static void voice_process_frame(BongoCatVoice *voice, const int16_t *frame) {
+static void voice_process_frame(BongoCatVoice *voice, int16_t *frame) {
+    voice_hpf_apply(voice, frame, BONGO_CAT_VAD_FRAME_SAMPLES);
     unsigned turn = (unsigned)SDL_GetAtomicInt(&voice->turn);
     if (turn != voice->turn_seen) {
         /* The main thread ended the turn, most often on the recognizer's own
@@ -91,6 +130,7 @@ bool bongo_cat_voice_capture_start(BongoCatVoice *voice) {
     config.pUserData = voice;
     bongo_cat_voice_ring_init(&voice->ring);
     bongo_cat_vad_init(&voice->vad, BONGO_CAT_VAD_TAIL_SILENCE_MS);
+    voice_hpf_init(voice);
     voice->lookback_pos = voice->lookback_fill = 0;
     voice->frame_carry_count = 0;
     ma_result result = ma_device_init(NULL, &config, &voice->capture_device);

@@ -20,8 +20,10 @@ typedef struct BongoCatTtsConfig {
 BongoCatTts *bongo_cat_tts_create(BongoCatVoice *voice,
     const BongoCatTtsConfig *config);
 bool bongo_cat_tts_start(BongoCatTts *tts, const char *api_key);
-/* Returns false when the worker is missing, busy or the text is empty. The
-   epoch is the voice turn being answered; READY/ERROR carry it back. */
+/* Returns false when the worker is missing or the text is empty. The epoch is
+   the voice turn being answered; READY/ERROR carry it back. A request that
+   arrives while an answer is still synthesizing replaces it, because only the
+   last word of a turn is ever meant to be heard. */
 bool bongo_cat_tts_speak(BongoCatTts *tts, const char *text, unsigned epoch);
 void bongo_cat_tts_cancel(BongoCatTts *tts);
 bool bongo_cat_tts_running(const BongoCatTts *tts);

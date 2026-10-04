@@ -32,6 +32,9 @@ struct BongoCatVoice {
     char partial_text[BONGO_CAT_VOICE_TEXT_CAP];
     char final_text[BONGO_CAT_VOICE_TEXT_CAP];
     char result_text[BONGO_CAT_VOICE_TEXT_CAP];
+    /* result_text as it was when playback started: what the microphone is
+       entitled to hear while she talks, and therefore not an interruption. */
+    char speaking_text[BONGO_CAT_VOICE_TEXT_CAP];
     Uint64 error_hold_until_ns;
     Uint64 recognize_until_ns;
     Uint64 thinking_until_ns;
@@ -54,6 +57,16 @@ struct BongoCatVoice {
     bool synthesizing;
     Uint64 speaking_until_ns;
     float mouth_value;
+    /* Barge-in is armed by the energy gate and confirmed by words: while she
+       speaks, an onset opens the recognizer and starts this window. Zero means
+       no candidate interruption is pending. */
+    Uint64 interrupt_until_ns;
+    /* One report per window: the recognizer answers several times a second and
+       every one of her own words would otherwise log a refusal. */
+    bool interrupt_echo_refused;
+    /* Results the recognizer returned for this candidate. One is what a burst
+       of noise hallucinates; a person talking over her keeps answering. */
+    unsigned interrupt_hits;
     ma_device capture_device;
     bool capturing;
     BongoCatVoiceRing ring;
@@ -62,6 +75,13 @@ struct BongoCatVoice {
     size_t lookback_pos, lookback_fill;
     int16_t frame_carry[BONGO_CAT_VAD_FRAME_SAMPLES];
     unsigned frame_carry_count;
+    /* Rumble, not speech, is what this microphone reports: the energy under
+       120 Hz measured 8x the speech band, so the level gate opened on the
+       room's fan and the recognizer made sentences out of it. Every frame is
+       high-passed before it is measured or recorded, which leaves the gate
+       and the transcript reading the band where words actually live. */
+    float hpf_b0, hpf_b1, hpf_b2, hpf_a1, hpf_a2;
+    float hpf_x1, hpf_x2, hpf_y1, hpf_y2;
     SDL_AtomicInt utterances;
     SDL_AtomicInt level_milli; /* Capture energy x1000 for the UI meter. */
     /* Turn boundary: the main thread bumps this when an utterance ends, and
@@ -76,6 +96,11 @@ struct BongoCatVoice {
        floor for the capture thread; only level_milli and barge_ref_milli are
        shared, the rest is main-thread state. */
     float echo_gain;
+    bool echo_primed;
+    /* Loudest microphone frame and loudest playback frame of this answer: the
+       two together say where a floor has to sit for echo to stay under it. */
+    float echo_mic_peak;
+    float echo_env_peak;
     float barge_ref;
     Uint64 barge_calibrate_until_ns;
     SDL_AtomicInt barge_ref_milli;
@@ -113,12 +138,27 @@ void bongo_cat_voice_capture_stop(BongoCatVoice *voice);
 /* voice_barge.c: full-duplex operation while the pet speaks. echo_begin arms
    a short calibration window, echo_update tracks the captured level against
    the playback envelope, and echo_floor is what the capture thread feeds the
-   VAD as an extra onset gate. reset forgets everything (playback ended). */
+   VAD as an extra onset gate. reset ends the floor for this answer and keeps
+   what this machine learned about its own speakers. */
 void bongo_cat_voice_echo_begin(BongoCatVoice *voice, Uint64 now);
 void bongo_cat_voice_echo_update(BongoCatVoice *voice, Uint64 now,
     float envelope);
 void bongo_cat_voice_echo_reset(BongoCatVoice *voice);
 float bongo_cat_voice_echo_floor(BongoCatVoice *voice);
+/* Candidate interruption while she speaks: open the recognizer and wait for
+   words. Nothing is given up on until barge_in confirms the interruption, so a
+   loud room can no longer shut her mid-sentence. */
+void bongo_cat_voice_barge_arm(BongoCatVoice *voice);
+/* True while a candidate interruption is open. */
+bool bongo_cat_voice_barge_armed(BongoCatVoice *voice);
+/* Give the candidate up again: drop the recognizer task and close the gate. */
+void bongo_cat_voice_barge_disarm(BongoCatVoice *voice);
+/* True while the transcript is only what she is already saying: the microphone
+   hears her own speakers, and that is not somebody cutting in. */
+bool bongo_cat_voice_barge_is_echo(BongoCatVoice *voice);
+/* One more recognition arrived for the candidate. True once it looks like a
+   person talking over her rather than the room being answered with a word. */
+bool bongo_cat_voice_barge_confirm(BongoCatVoice *voice);
 /* Cut playback short and hand the microphone back: SPEAKING -> LISTENING. */
 void bongo_cat_voice_barge_in(BongoCatVoice *voice);
 

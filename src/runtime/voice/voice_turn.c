@@ -12,6 +12,14 @@ void bongo_cat_voice_set_state(BongoCatVoice *voice, BongoCatVoiceState state) {
     SDL_LockMutex(voice->mutex);
     voice->state = state;
     if (state != BONGO_CAT_VOICE_STATE_ERROR_HOLD) voice->error[0] = '\0';
+    /* Snapshot what the speaker is about to play: everything the microphone
+       hears from it afterwards is a replay, not an interruption. */
+    if (state == BONGO_CAT_VOICE_STATE_SPEAKING)
+        SDL_strlcpy(voice->speaking_text, voice->result_text,
+            sizeof(voice->speaking_text));
+    /* A candidate interrupt only lives inside the answer it would cut short,
+       so it must not survive the turn that armed it. */
+    if (state != BONGO_CAT_VOICE_STATE_SPEAKING) voice->interrupt_until_ns = 0;
     SDL_UnlockMutex(voice->mutex);
     bongo_cat_voice_post(voice, 0);
 }
